@@ -8,45 +8,52 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  extensions = [postgis(version: "3.3.2")] // For geo support
+  extensions = [postgis(version: "3.3.2")]
 }
 
-// ============================================================================
-// SIGNAL - Atomic unit of lived data
-// ============================================================================
-
 model Signal {
-  id          String   @id @default(cuid())
-  userId      String   // Owner of signal
+  signal_ulid        String   @id @default(cuid())
+  signal_type        SignalType?
+  signal_title       String?
+  signal_description String?  @db.Text
+  signal_author      String?
+  signal_source      String?
 
-  type        SignalType
-  content     String   @db.Text // File path, URL, or text content
+  // Geography
+  signal_latitude    Decimal? @db.Decimal(10, 8)
+  signal_longitude   Decimal? @db.Decimal(11, 8)
 
-  // Privacy classification
-  status      SignalStatus @default(PUBLIC)
+  // Processing state
+  signal_status      SignalStatus @default(PENDING)
 
-  // Temporal data
-  capturedAt  DateTime @default(now()) // When signal was created in real life
-  createdAt   DateTime @default(now()) // When signal was added to system
-  updatedAt   DateTime @updatedAt
+  // Privacy level
+  signal_visibility  SignalVisibility @default(PUBLIC)
 
-  // Spatial data (PostgreSQL geography type)
-  // Using Decimal for lat/lng - Prisma doesn't have native geo yet
-  latitude    Decimal? @db.Decimal(10, 8)
-  longitude   Decimal? @db.Decimal(11, 8)
-  // For production, you'd use PostGIS GEOGRAPHY type via raw SQL
+  // Flexible data storage
+  signal_metadata    Json?    @db.JsonB
 
-  // Metadata (flexible JSON)
-  metadata    Json?    @db.JsonB // Tags, custom fields, etc.
+  // Signal payload (can include pre-processing annotations)
+  signal_payload     Json?    @db.JsonB // Content + annotations
+
+  signal_tags        Json?    @db.JsonB
+
+  // Timestamps
+  stamp_created      DateTime
+  stamp_updated      DateTime? @updatedAt
+  stamp_seeded       DateTime?
 
   // Relations
-  reflection  Reflection?
-  clusters    ClusterSignal[]
+  metadata           Metadata?
+  reflections        Reflection[]
+  clusters           ClusterSignal[]
 
-  @@index([userId])
-  @@index([type])
-  @@index([status])
-  @@index([capturedAt])
+  @@map("kernel_signals")
+  @@index([signal_author])
+  @@index([signal_status])
+  @@index([signal_visibility])
+  @@index([signal_type])
+  @@index([stamp_created])
+  @@index([stamp_seeded])
 }
 
 enum SignalType {
@@ -58,34 +65,102 @@ enum SignalType {
 }
 
 enum SignalStatus {
-  PUBLIC
-  PRIVATE
-  SANCTUM
+  PENDING      // Waiting for AI processing
+  PROCESSING   // AI extraction running
+  PROCESSED    // Metadata extracted
+  FAILED       // Processing error
+}
+
+enum SignalVisibility {
+  PUBLIC       // Anyone can see
+  PRIVATE      // Only owner
+  SANCTUM      // Protected space
 }
 
 // ============================================================================
-// REFLECTION - AI-powered analysis of signal
+// METADATA - AI extraction layer WITH FULL AUDIT TRAIL
+// ============================================================================
+
+model Metadata {
+  metadata_ulid      String   @id @default(cuid())
+
+  // Polymorphic target
+  target_ulid        String
+  target_type        String   // 'signal' or 'cluster'
+
+  // Relations
+  signal             Signal?  @relation(fields: [target_ulid], references: [signal_ulid], onDelete: Cascade)
+  cluster            Cluster? @relation(fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade)
+
+  // Extraction metadata
+  metadata_type      String?
+  metadata_depth     String   @default("signal")
+
+  // Current extracted data (latest successful version)
+  metadata_content   Json?    @db.JsonB // themes, patterns, sentiment
+
+  // Processing info (current)
+  metadata_provider  String?  // 'anthropic', 'openai', 'local'
+  metadata_model     String?  // 'claude-sonnet-4-20250514', etc.
+
+  // Annotations (pre-processing instructions)
+  metadata_annotations Json?  @db.JsonB // Instructions to AI about this signal
+
+  // Audit trail (ALL attempts, preserved forever)
+  metadata_history   Json     @db.JsonB // Array of processing attempts
+
+  // Error tracking
+  metadata_errors    Json?    @db.JsonB // Array of errors encountered
+
+  // Timestamps
+  stamp_created      DateTime
+  stamp_updated      DateTime? @updatedAt
+
+  @@map("kernel_metadata")
+  @@index([target_type])
+  @@index([target_ulid])
+}
+
+// ============================================================================
+// REFLECTION - Narrative synthesis layer
 // ============================================================================
 
 model Reflection {
-  id          String   @id @default(cuid())
-  signalId    String   @unique
-  signal      Signal   @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  reflection_ulid    String   @id @default(cuid())
 
-  // AI-extracted data (all JSON for flexibility)
-  metadata    Json     @db.JsonB // Themes, entities, locations extracted
-  patterns    Json     @db.JsonB // Detected patterns, recurring elements
-  sentiment   Json     @db.JsonB // Emotional markers, cognitive state
+  // Target (Signal or Cluster)
+  target_ulid        String
+  target_type        String   // 'signal' or 'cluster'
 
-  // Processing metadata
-  provider    String   // "anthropic", "openai", "local", etc.
-  model       String   // "claude-sonnet-4", "gpt-4", etc.
-  processed   DateTime @default(now())
+  // Relations
+  signal             Signal?  @relation(fields: [target_ulid], references: [signal_ulid], onDelete: Cascade)
+  cluster            Cluster? @relation(fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // Reflection type
+  reflection_type    ReflectionType
 
-  @@index([signalId])
+  // Content
+  reflection_title   String?
+  reflection_content String   @db.Text
+
+  // Metadata
+  reflection_author  String?
+  reflection_meta    Json?    @db.JsonB
+
+  // Timestamps
+  stamp_created      DateTime
+  stamp_updated      DateTime? @updatedAt
+
+  @@map("kernel_reflections")
+  @@index([target_ulid])
+  @@index([target_type])
+  @@index([reflection_type])
+}
+
+enum ReflectionType {
+  MIRROR      // High-fidelity representation
+  MYTH        // Archetypal pattern
+  NARRATIVE   // Structured storytelling
 }
 
 // ============================================================================
@@ -93,65 +168,72 @@ model Reflection {
 // ============================================================================
 
 model Cluster {
-  id          String   @id @default(cuid())
-  userId      String   // Owner
+  cluster_ulid       String   @id @default(cuid())
+  cluster_type       ClusterType?
+  cluster_title      String?
+  cluster_notes      Json?    @db.JsonB
+  cluster_tags       Json?    @db.JsonB
+  cluster_metadata   Json?    @db.JsonB
+  cluster_state      String
 
-  name        String
-  description String?  @db.Text
-  type        ClusterType
-
-  // Cluster metadata (flexible)
-  metadata    Json?    @db.JsonB // Temporal range, spatial bounds, themes
+  // Temporal bounds
+  stamp_cluster_start DateTime?
+  stamp_cluster_end   DateTime?
+  stamp_created       DateTime
 
   // Relations
-  signals     ClusterSignal[]
+  signals            ClusterSignal[]
+  metadata           Metadata[]
+  reflections        Reflection[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([type])
+  @@map("kernel_clusters")
+  @@index([cluster_type])
+  @@index([cluster_state])
+  @@index([stamp_cluster_start])
+  @@index([stamp_cluster_end])
 }
 
 enum ClusterType {
-  TEMPORAL   // Signals from same time period
-  SPATIAL    // Signals from same location
-  THEMATIC   // Signals with related content
-  MANUAL     // User-created grouping
+  TEMPORAL   // Time-based grouping
+  SPATIAL    // Location-based grouping
+  THEMATIC   // Content similarity
+  MANUAL     // User-created
 }
 
 // ============================================================================
-// CLUSTER_SIGNAL - Many-to-many join table
+// CLUSTER_SIGNAL - Many-to-many pivot table
 // ============================================================================
 
 model ClusterSignal {
-  clusterId   String
-  signalId    String
+  cluster_ulid       String
+  signal_ulid        String
 
-  cluster     Cluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
-  signal      Signal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  cluster            Cluster  @relation(fields: [cluster_ulid], references: [cluster_ulid], onDelete: Cascade)
+  signal             Signal   @relation(fields: [signal_ulid], references: [signal_ulid], onDelete: Cascade)
 
-  // Position in cluster (for ordering)
-  position    Int?
+  // Pivot metadata
+  position           Int?
+  pivot_metadata     Json?    @db.JsonB
+  stamp_added        DateTime
 
-  addedAt     DateTime @default(now())
-
-  @@id([clusterId, signalId])
-  @@index([clusterId])
-  @@index([signalId])
+  @@id([cluster_ulid, signal_ulid])
+  @@map("kernel_cluster_signals")
+  @@index([cluster_ulid])
+  @@index([signal_ulid])
 }
 
 // ============================================================================
-// USER - Basic user model (expand later with NextAuth)
+// USER - Basic user model
 // ============================================================================
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
+  user_ulid     String   @id @default(cuid())
+  user_email    String   @unique
+  user_name     String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  stamp_created DateTime @default(now())
+  stamp_updated DateTime @updatedAt
 
-  @@index([email])
+  @@map("kernel_users")
+  @@index([user_email])
 }
