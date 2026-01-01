@@ -1,18 +1,24 @@
 // app/api/signals/route.ts
 
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import { prisma } from '@/lib/db';
 import { getAIProvider } from '@/lib/ai';
 
 const createSignalSchema = z.object({
-    type: z.enum(['PHOTO', 'VIDEO', 'AUDIO', 'TEXT', 'LOCATION']),
-    content: z.string().min(1),
-    status: z.enum(['PUBLIC', 'PRIVATE', 'SANCTUM']).optional(),
-    capturedAt: z.string().datetime().optional(),
-    latitude: z.number().min(-90).max(90).optional(),
-    longitude: z.number().min(-180).max(180).optional(),
-    metadata: z.record(z.any()).optional(),
+    signal_type: z.enum(['PHOTO', 'VIDEO', 'AUDIO', 'TEXT', 'LOCATION']),
+    signal_title: z.string().optional(),
+    signal_description: z.string().optional(),
+    signal_author: z.string().optional(),
+    signal_source: z.string().optional(),
+    signal_latitude: z.number().min(-90).max(90).optional(),
+    signal_longitude: z.number().min(-180).max(180).optional(),
+    signal_status: z.enum(['PENDING', 'PROCESSING', 'PROCESSED', 'FAILED']).optional(),
+    signal_visibility: z.enum(['PUBLIC', 'PRIVATE', 'SANCTUM']).optional(),
+    signal_metadata: z.record(z.string(), z.any()).optional(),
+    signal_payload: z.record(z.string(), z.any()).optional(),
+    signal_tags: z.array(z.string()).optional(),
+    stamp_created: z.string().datetime().optional(),
 });
 
 export async function POST(request: Request) {
@@ -20,50 +26,31 @@ export async function POST(request: Request) {
         const body = await request.json();
         const validated = createSignalSchema.parse(body);
 
-        // TODO: Add authentication
-        const userId = 'temp-user-id'; // Replace with actual auth
-
-        // Create signal
         const signal = await prisma.signal.create({
             data: {
-                userId,
-                type: validated.type,
-                content: validated.content,
-                status: validated.status || 'PUBLIC',
-                capturedAt: validated.capturedAt ? new Date(validated.capturedAt) : new Date(),
-                latitude: validated.latitude,
-                longitude: validated.longitude,
-                metadata: validated.metadata,
+                signal_ulid: crypto.randomUUID(),
+                signal_type: validated.signal_type,
+                signal_title: validated.signal_title,
+                signal_description: validated.signal_description,
+                signal_author: validated.signal_author,
+                signal_source: validated.signal_source,
+                signal_latitude: validated.signal_latitude,
+                signal_longitude: validated.signal_longitude,
+                signal_status: validated.signal_status || 'PENDING',
+                signal_visibility: validated.signal_visibility || 'PUBLIC',
+                signal_metadata: validated.signal_metadata as any,
+                signal_payload: validated.signal_payload as any,
+                signal_tags: validated.signal_tags as any,
+                stamp_created: validated.stamp_created ? new Date(validated.stamp_created) : new Date(),
             },
         });
-
-        // Run AI reflection asynchronously
-        const aiProvider = getAIProvider();
-
-        try {
-            const reflection = await aiProvider.reflect(validated.content, validated.type);
-
-            await prisma.reflection.create({
-                data: {
-                    signalId: signal.id,
-                    metadata: reflection.metadata,
-                    patterns: reflection.patterns,
-                    sentiment: reflection.sentiment,
-                    provider: aiProvider.name,
-                    model: 'claude-sonnet-4-20250514', // Track which model
-                },
-            });
-        } catch (error) {
-            console.error('Reflection failed:', error);
-            // Signal created successfully, reflection failed - that's okay
-        }
 
         return NextResponse.json({ signal }, { status: 201 });
 
     } catch (error) {
-        if (error instanceof z.ZodError) {
+        if (error instanceof ZodError) {
             return NextResponse.json(
-                { error: 'Validation failed', details: error.errors },
+                { error: 'Validation failed', details: error.issues },
                 { status: 400 }
             );
         }
@@ -78,23 +65,24 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
     try {
-        // TODO: Add authentication and filter by userId
-
         const { searchParams } = new URL(request.url);
         const type = searchParams.get('type');
         const status = searchParams.get('status');
+        const visibility = searchParams.get('visibility');
         const limit = parseInt(searchParams.get('limit') || '50');
 
         const signals = await prisma.signal.findMany({
             where: {
-                ...(type && { type: type as any }),
-                ...(status && { status: status as any }),
+                ...(type && { signal_type: type as any }),
+                ...(status && { signal_status: status as any }),
+                ...(visibility && { signal_visibility: visibility as any }),
             },
             include: {
-                reflection: true,
+                metadata: true,
+                reflections: true,
             },
-            orderBy: { capturedAt: 'desc' },
-            take: Math.min(limit, 100), // Max 100
+            orderBy: { stamp_created: 'desc' },
+            take: Math.min(limit, 100),
         });
 
         return NextResponse.json({ signals });

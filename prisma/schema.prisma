@@ -43,8 +43,8 @@ model Signal {
   stamp_seeded       DateTime?
 
   // Relations
-  metadata           Metadata?
-  reflections        Reflection[]
+  metadata     Metadata[] @relation("MetadataToSignal")
+  reflections  Reflection[] @relation("ReflectionToSignal")
   clusters           ClusterSignal[]
 
   @@map("kernel_signals")
@@ -89,8 +89,8 @@ model Metadata {
   target_type        String   // 'signal' or 'cluster'
 
   // Relations
-  signal             Signal?  @relation(fields: [target_ulid], references: [signal_ulid], onDelete: Cascade)
-  cluster            Cluster? @relation(fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade)
+  signal    Signal?  @relation("MetadataToSignal", fields: [target_ulid], references: [signal_ulid], onDelete: Cascade, map: "metadata_signal_fkey")
+  cluster   Cluster? @relation("MetadataToCluster", fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade, map: "metadata_cluster_fkey")
 
   // Extraction metadata
   metadata_type      String?
@@ -133,8 +133,8 @@ model Reflection {
   target_type        String   // 'signal' or 'cluster'
 
   // Relations
-  signal             Signal?  @relation(fields: [target_ulid], references: [signal_ulid], onDelete: Cascade)
-  cluster            Cluster? @relation(fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade)
+  signal    Signal?  @relation("ReflectionToSignal", fields: [target_ulid], references: [signal_ulid], onDelete: Cascade, map: "reflection_signal_fkey")
+  cluster   Cluster? @relation("ReflectionToCluster", fields: [target_ulid], references: [cluster_ulid], onDelete: Cascade, map: "reflection_cluster_fkey")
 
   // Reflection type
   reflection_type    ReflectionType
@@ -183,8 +183,8 @@ model Cluster {
 
   // Relations
   signals            ClusterSignal[]
-  metadata           Metadata[]
-  reflections        Reflection[]
+  metadata     Metadata[] @relation("MetadataToCluster")
+  reflections  Reflection[] @relation("ReflectionToCluster")
 
   @@map("kernel_clusters")
   @@index([cluster_type])
