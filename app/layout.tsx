@@ -38,9 +38,9 @@ export default function RootLayout({
             <footer className="mt-24 border-t border-zinc-200 bg-zinc-50">
                 <div className="mx-auto max-w-6xl px-6 py-12 grid grid-cols-1 gap-12 md:grid-cols-3">
                     <div>
-                        <strong className="block font-semibold">rswfire.dev</strong>
+                        <strong className="block font-semibold">builtwithautonomy.com</strong>
                         <p className="mt-2 text-sm text-zinc-600 max-w-xs">
-                            Systems, autonomy, and long-horizon technical work.
+                            Coming Soon!
                         </p>
                     </div>
 

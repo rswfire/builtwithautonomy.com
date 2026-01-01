@@ -15,7 +15,7 @@ export function Navigation() {
                 <a href="/"
                    className="text-base font-semibold tracking-wide text-zinc-900"
                 >
-                    rswfire.dev
+                    builtwithautonomy.com
                 </a>
 
                 <div className="flex items-center gap-8">
