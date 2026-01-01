@@ -1,17 +1,24 @@
 // app/api/signals/[id]/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+type RouteContext = {
+    params: Promise<{ id: string }>;
+};
+
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    context: RouteContext
 ) {
     try {
+        const { id } = await context.params;
+
         const signal = await prisma.signal.findUnique({
-            where: { id: params.id },
+            where: { signal_ulid: id },
             include: {
-                reflection: true,
+                metadata: true,
+                reflections: true,
                 clusters: {
                     include: {
                         cluster: true,
@@ -31,6 +38,52 @@ export async function GET(
 
     } catch (error) {
         console.error('Signal fetch failed:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(
+    request: NextRequest,
+    context: RouteContext
+) {
+    try {
+        const { id } = await context.params;
+        const body = await request.json();
+
+        const signal = await prisma.signal.update({
+            where: { signal_ulid: id },
+            data: body,
+        });
+
+        return NextResponse.json({ signal });
+
+    } catch (error) {
+        console.error('Signal update failed:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    context: RouteContext
+) {
+    try {
+        const { id } = await context.params;
+
+        await prisma.signal.delete({
+            where: { signal_ulid: id },
+        });
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error('Signal delete failed:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
