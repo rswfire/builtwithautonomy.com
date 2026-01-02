@@ -112,7 +112,7 @@ export const synthesisFilterSchema = z.object({
     updated_before: z.date().optional(),
 
     // Include relations
-    include_target: z.boolean().default(false), // Include signal or cluster
+    include_target: z.boolean().optional().default(false),
 
     // Pagination
     limit: z.number().int().positive().max(100).default(10),

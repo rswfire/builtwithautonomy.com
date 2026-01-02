@@ -126,11 +126,14 @@ export function generateFormFromZodSchema(
         // Skip auto-generated fields
         if (['stamp_created', 'stamp_updated', 'signal_embedding'].includes(fieldName)) continue
 
-        // Check if required
-        const isRequired = zodField.constructor.name !== 'ZodOptional' &&
-            zodField.constructor.name !== 'ZodNullable'
+        // Type assertion
+        const field = zodField as any
 
-        fields.push(generateFieldFromZod(fieldName, zodField as any, isRequired))
+        // Check if required
+        const isRequired = field.constructor.name !== 'ZodOptional' &&
+            field.constructor.name !== 'ZodNullable'
+
+        fields.push(generateFieldFromZod(fieldName, field, isRequired))
     }
 
     return {

@@ -243,7 +243,7 @@ export async function getSynthesisForCluster(
 /**
  * Query synthesis with filters
  */
-export async function querySynthesis(filter: SynthesisFilter): Promise<{
+export async function querySynthesis(filter: Partial<SynthesisFilter>): Promise<{
     synthesis: Synthesis[]
     total: number
 }> {
@@ -258,11 +258,11 @@ export async function querySynthesis(filter: SynthesisFilter): Promise<{
         created_before,
         updated_after,
         updated_before,
-        include_target,
-        limit,
-        offset,
+        include_target = false,
+        limit = 10,
+        offset = 0,
         sort_by,
-        sort_order,
+        sort_order = 'desc',
     } = filter
 
     // Build where clause

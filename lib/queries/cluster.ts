@@ -226,7 +226,7 @@ export async function getClusterSignals(cluster_id: string): Promise<any[]> {
 /**
  * Query clusters with filters
  */
-export async function queryClusters(filter: ClusterFilter): Promise<{
+export async function queryClusters(filter: Partial<ClusterFilter>): Promise<{
     clusters: Cluster[]
     total: number
 }> {
@@ -244,13 +244,13 @@ export async function queryClusters(filter: ClusterFilter): Promise<{
         tags,
         tags_match,
         search,
-        include_signals,
-        include_synthesis,
-        include_hierarchy,
-        limit,
-        offset,
+        include_signals = false,
+        include_synthesis = false,
+        include_hierarchy = false,
+        limit = 10,
+        offset = 0,
         sort_by,
-        sort_order,
+        sort_order = 'desc',
     } = filter
 
     // Build where clause

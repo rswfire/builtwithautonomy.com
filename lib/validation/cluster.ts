@@ -113,9 +113,9 @@ export const clusterFilterSchema = z.object({
     search: z.string().optional(),
 
     // Include relations
-    include_signals: z.boolean().default(false),
-    include_synthesis: z.boolean().default(false),
-    include_hierarchy: z.boolean().default(false),
+    include_signals: z.boolean().optional().default(false),
+    include_synthesis: z.boolean().optional().default(false),
+    include_hierarchy: z.boolean().optional().default(false),
 
     // Pagination
     limit: z.number().int().positive().max(100).default(10),
