@@ -15,7 +15,17 @@ import {
     ShieldCheck,
     TreeDeciduous,
     Video,
-    X
+    X,
+    // Admin additions
+    Home,
+    Radio,
+    FolderOpen,
+    Sparkles,
+    Settings,
+    LogOut,
+    Plus,
+    BarChart3,
+    Users
 } from 'lucide-react';
 
 const iconMap = {
@@ -29,11 +39,21 @@ const iconMap = {
     TreeDeciduous,
     Video,
     X,
-    Compass,      // Explore
-    ShieldCheck,  // Proof (verification without aggression)
-    Layers,       // Work / Systems
-    Network,      // Network (if you want literal clarity)
-    Lock,         // Client Dashboard / gated system
+    Compass,
+    ShieldCheck,
+    Layers,
+    Network,
+    Lock,
+    // Admin
+    Home,
+    Radio,          // Signal
+    FolderOpen,     // Clusters
+    Sparkles,       // Synthesis
+    Settings,
+    LogOut,
+    Plus,
+    BarChart3,      // Dashboard/Stats
+    Users
 } as const;
 
 export type IconName = keyof typeof iconMap;
