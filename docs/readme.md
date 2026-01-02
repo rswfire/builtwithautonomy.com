@@ -47,34 +47,39 @@ Structured grouping of related signals based on:
 - **Spatial proximity** - signals from the same location.
 - **Thematic similarity** - signals with related content.
 
-### Metadata
-AI-powered extraction that identifies:
+### Synthesis
+
+**AI-powered pattern detection and relationship mapping across signals and clusters.**
+
+The synthesis layer processes raw signals to generate two forms of understanding:
+
+#### Metadata Extraction
+Identifies structural elements without reframing or pathologizing:
 - Themes and entities.
 - Emotional/cognitive markers.
-- Structural patterns.
+- Temporal patterns.
 - Cross-signal relationships.
 
-**Critical:** Metadata extraction does _not_ reframe or pathologize. It maps what's there, not what "should" be there.
+**Critical:** Metadata maps what's there, not what "should" be there. No diagnostic framing. No institutional interpretation. Just pattern recognition.
 
-### Reflection
-Narrative synthesis layer that transforms signals and metadata into coherent forms:
+#### Reflection Generation
+Transforms signals and clusters into coherent narrative forms:
 
 - **Mirror** - High-fidelity representation without interpretive distortion. Shows you what you documented, as you documented it.
 - **Myth** - Archetypal pattern recognition. Lived reality rendered as mythic structure, revealing deeper patterns.
 - **Narrative** - Structured storytelling across temporal spans. Your signals woven into coherent narrative flow.
 
-### Synthesis
+**How it works:**
+- Synthesis processes individual signals → generates metadata.
+- Synthesis processes clusters of signals → generates reflections.
+- Reflections reveal patterns invisible at individual signal level.
+- All processing preserves full audit trail (attempts, errors, annotations).
 
-**Pattern detection and relationship mapping across signals and clusters over time.**
-
-The synthesis layer observes signal streams and identifies:
-- **Recurring themes** - patterns that repeat across temporal or spatial boundaries.
-- **Trajectory shifts** - inflection points where direction or tone changes.
-- **Structural coherence** - how signals relate to form larger patterns.
-- **Emergent narratives** - stories that become visible only at scale.
-
-**Synthesis generates Reflections from Clusters** - transforming grouped signals into coherent narrative forms (Mirror, Myth, or Narrative) that reveal patterns invisible at the individual signal level.
-
+**Synthesis observes:**
+- Recurring themes across temporal/spatial boundaries.
+- Trajectory shifts and inflection points.
+- Structural coherence patterns.
+- Emergent narratives visible only at scale.
 ---
 
 ## Why Autonomy Exists
