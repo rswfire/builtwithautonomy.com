@@ -9,10 +9,6 @@
 
 **Cognitive infrastructure for signal documentation, pattern recognition, and epistemic fidelity.**
 
----
-
-## What Is Autonomy?
-
 Autonomy is an open-source platform for capturing, processing, and synthesizing lived experience into coherent knowledge structures. It treats life as a continuous stream of signals — photos, videos, audio, text, locations — and uses AI-powered metadata extraction to identify patterns and preserve truth without distortion.
 
 **Core principle:** Your reality should not be reframed, filtered, or flattened by systems that claim to help you.  
@@ -54,27 +50,26 @@ Autonomy is built on the recognition that:
 - `PRIVATE` - Owner only.
 - `SHARED` - Owner only (reserved for future sharing features).
 
----
 
-#### Signal
+### Signal
 The atomic unit of lived data. A photo, video, audio recording, text note, or location marker. Each signal is timestamped, geolocated (optional), and classified as:
 - **Public** - shareable with the world.
 - **Private** - visible only to you.
 - **Sanctum** - a protected space.
 
-#### Cluster
+### Cluster
 Structured grouping of related signals based on:
 - **Temporal proximity** - signals from the same time period.
 - **Spatial proximity** - signals from the same location.
 - **Thematic similarity** - signals with related content.
 
-#### Synthesis
+### Synthesis
 
 **AI-powered pattern detection and relationship mapping across signals and clusters.**
 
 The synthesis layer processes raw signals to generate two forms of understanding:
 
-##### Metadata Extraction
+#### Metadata Extraction
 Identifies structural elements without reframing or pathologizing:
 - Themes and entities.
 - Emotional/cognitive markers.
@@ -83,7 +78,7 @@ Identifies structural elements without reframing or pathologizing:
 
 **Critical:** Metadata maps what's there, not what "should" be there. No diagnostic framing. No institutional interpretation. Just pattern recognition.
 
-##### Reflection Generation
+#### Reflection Generation
 Transforms signals and clusters into coherent narrative forms:
 
 - **Mirror** - High-fidelity representation without interpretive distortion. Shows you what you documented, as you documented it.
@@ -117,27 +112,34 @@ Transforms signals and clusters into coherent narrative forms:
 - Reflects patterns without institutional reframing.
 - Operates as cognitive infrastructure, not content platform.
 
----
+### Who This Is For
 
-## Use Cases
+**This project is for people who:**
+- Document their lives with intention.
+- Value epistemic fidelity over protective filtering.
+- Recognize that institutional systems increasingly distort reality.
+- Want cognitive infrastructure that doesn't gaslight them.
+- Understand that pattern recognition is a survival skill.
 
-### For Content Creators
+**This project is not for:**
+- People seeking algorithmic content curation.
+- Users comfortable with platform-owned data.
+- Those who prefer mediated experience over direct encounter.
+- Anyone expecting AI to "keep them safe" by hiding reality.
+
+### Use Cases
+
+#### For Content Creators
 - Centralized signal repository (photos, videos, audio, notes).
 - AI-powered metadata extraction and tagging.
 - Pattern recognition across your creative output.
 - Portfolio generation from lived documentation.
 
-### For Researchers / Writers
+#### For Researchers / Writers
 - Structured field notes and observation capture.
 - Thematic clustering of research signals.
 - Long-form synthesis across temporal spans.
 - Citation and source tracking with full context.
-
-### For Anyone Building in Uncertainty
-- Reality documentation when consensus fractures.
-- Pattern recognition when systems become unreliable.
-- Cognitive coherence preservation during transitions.
-- Truth-mapping without institutional mediation.
 
 ---
 
@@ -150,7 +152,8 @@ Transforms signals and clusters into coherent narrative forms:
 - **bcryptjs** - Password hashing.
 - **ULID** - Sortable, timestamp-based IDs.
 
-**Storage:** Self-hosted or cloud (user choice).  
+**Storage:** Self-hosted or cloud (user choice).
+
 **Privacy:** Local-first option, end-to-end encryption imagined.
 
 **Optional:**
@@ -219,36 +222,14 @@ Transforms signals and clusters into coherent narrative forms:
 
 ---
 
-## Who This Is For
-
-**This project is for people who:**
-- Document their lives with intention.
-- Value epistemic fidelity over protective filtering.
-- Recognize that institutional systems increasingly distort reality.
-- Want cognitive infrastructure that doesn't gaslight them.
-- Understand that pattern recognition is a survival skill.
-
-**This project is NOT for:**
-- People seeking algorithmic content curation.
-- Users comfortable with platform-owned data.
-- Those who prefer mediated experience over direct encounter.
-- Anyone expecting AI to "keep them safe" by hiding reality.
-
----
-
 ## Support
 
-**Creator:** Robert Samuel White (rswfire)
-- Web: [rswfire.com](https://rswfire.com)
-- Handshake: [rswfire.com/handshake](https://rswfire.com/handshake)
+**Creator:**  
+[Robert Samuel White](https://rswfire.com) (rswfire)  
 
 **License:** MIT
 
----
-
-## Acknowledgments
-
-This project does not implement "AI safety" in the conventional sense.
+**This project does not implement "AI safety" in the conventional sense.**
 
 It does not:
 - Reframe your observations as emotional processing.
