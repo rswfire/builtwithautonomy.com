@@ -1,6 +1,7 @@
 // components/Icon.tsx
 import {
     ChevronDown,
+    ChevronRight,
     ChevronUp,
     Compass,
     FileText,
@@ -30,6 +31,7 @@ import {
 
 const iconMap = {
     ChevronDown,
+    ChevronRight,
     ChevronUp,
     FileText,
     HelpCircle,
