@@ -19,7 +19,7 @@
     "non-destructive-evaluation",
     "sovereign-tech"
   ],
-  "author": "Robert Samuel White <rsw@rswfire.com>"
+  "author": "Robert Samuel White <rsw@rswfire.com>",
   "scripts": {
     "create-owner": "node scripts/create-owner.js",
     "db:generate-schema": "node scripts/generate-schema.js",
