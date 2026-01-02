@@ -34,25 +34,47 @@ Autonomy is built on the recognition that:
 
 ## Architecture
 
-### Signal
+### Database Schema
+
+**Core Models:**
+- `signals` - Atomic data units with geospatial and embedding support.
+- `clusters` - Hierarchical groupings of signals.
+- `clusters_signals` - Many-to-many pivot with positioning.
+- `synthesis` - Polymorphic AI analysis layer (attaches to signals or clusters).
+- `users` - Authentication with role-based access control.
+
+**Roles:**
+- `OWNER` - Full control (create/edit/delete).
+- `SANCTUM` - Can view SANCTUM + PUBLIC signals.
+- `GUEST` - Can only view PUBLIC signals.
+
+**Visibility Levels:**
+- `PUBLIC` - Anyone can view.
+- `SANCTUM` - Trusted users only.
+- `PRIVATE` - Owner only.
+- `SHARED` - Owner only (reserved for future sharing features).
+
+---
+
+#### Signal
 The atomic unit of lived data. A photo, video, audio recording, text note, or location marker. Each signal is timestamped, geolocated (optional), and classified as:
 - **Public** - shareable with the world.
 - **Private** - visible only to you.
 - **Sanctum** - a protected space.
 
-### Cluster
+#### Cluster
 Structured grouping of related signals based on:
 - **Temporal proximity** - signals from the same time period.
 - **Spatial proximity** - signals from the same location.
 - **Thematic similarity** - signals with related content.
 
-### Synthesis
+#### Synthesis
 
 **AI-powered pattern detection and relationship mapping across signals and clusters.**
 
 The synthesis layer processes raw signals to generate two forms of understanding:
 
-#### Metadata Extraction
+##### Metadata Extraction
 Identifies structural elements without reframing or pathologizing:
 - Themes and entities.
 - Emotional/cognitive markers.
@@ -61,7 +83,7 @@ Identifies structural elements without reframing or pathologizing:
 
 **Critical:** Metadata maps what's there, not what "should" be there. No diagnostic framing. No institutional interpretation. Just pattern recognition.
 
-#### Reflection Generation
+##### Reflection Generation
 Transforms signals and clusters into coherent narrative forms:
 
 - **Mirror** - High-fidelity representation without interpretive distortion. Shows you what you documented, as you documented it.
@@ -121,39 +143,79 @@ Transforms signals and clusters into coherent narrative forms:
 
 ## Technical Stack
 
-**Frontend:** Next.js (React).  
-**Backend:** Laravel (API) - *separate repository*.  
-**AI Integration:** Modular architecture supporting:
-- Open-source reflection pipeline.
-- Custom AI provider integration.
-- Local model deployment.
-- Hybrid public/private processing.
+- **Next.js 16** - React framework with App Router.
+- **TypeScript** - Type safety.
+- **Prisma** - Database ORM with migrations.
+- **Zod** - Runtime validation.
+- **bcryptjs** - Password hashing.
+- **ULID** - Sortable, timestamp-based IDs.
 
 **Storage:** Self-hosted or cloud (user choice).  
 **Privacy:** Local-first option, end-to-end encryption imagined.
 
+**Optional:**
+- **PostGIS** - Geospatial queries (PostgreSQL).
+- **pgvector** - Vector similarity search (PostgreSQL).
+- **OpenAI** - Embeddings and synthesis generation.
+
 ---
 
-## Project Status
+## Roadmap
 
-**Current Phase:** Foundation+
+### Phase 1: Core Infrastructure (Current)
+- [x] Database schema with Prisma ORM
+- [x] CRUD operations with auth
+- [x] Role-based access control
+- [x] ULID-based ID generation
+- [x] Password hashing and validation
+- [x] Geospatial and embedding support
 
-**Completed:**
-- Elements of the reflection technology.
-- Templates for video archives.
-- Some clustering algorithms (especially temporal).
+### Phase 2: API & Authentication (Next)
+- [ ] REST/GraphQL API routes
+- [ ] JWT/session-based authentication middleware
+- [ ] Rate limiting and request validation
+- [ ] API documentation (OpenAPI/Swagger)
+- [ ] WebSocket support for real-time updates
 
-**In Progress:**
-- Photo gallery with AI reflection.
-- Signal type templates (video, audio, text).
-- Atlas feature (geospatial signal mapping).
+### Phase 3: Frontend & User Experience
+- [ ] Frontend UI components (React/Next.js)
+- [ ] Signal creation and editing interfaces
+- [ ] Cluster management and visualization
+- [ ] File upload for photos/videos/audio
+- [ ] Interactive maps for geospatial signals
+- [ ] Search and filter interfaces
+- [ ] Mobile-responsive design
+- [ ] Progressive Web App (PWA) support
+- [ ] Native mobile app (iOS/Android)
 
-**Planned:**
-- Open-source AI reflection pipeline.
-- Clustering algorithms (temporal, spatial, thematic).
-- Advanced synthesis and pattern detection.
-- Plugin system for custom integrations.
-- An AI field companion trained on Autonomy data (named Remnant).
+### Phase 4: AI & Synthesis
+- [ ] Real-time synthesis generation
+- [ ] Open-source AI reflection pipeline
+- [ ] Embedding generation for semantic search
+- [ ] Vector similarity queries
+- [ ] Pattern detection across signals
+- [ ] Clustering algorithms (temporal, spatial, thematic)
+- [ ] Automated tagging and metadata extraction
+- [ ] **Remnant**: AI field companion trained on Autonomy data
+
+### Phase 5: Advanced Features
+- [ ] Export/import capabilities (JSON, Markdown, Archive formats)
+- [ ] Multi-user sharing features (granular permissions)
+- [ ] Collaboration tools (comments, annotations)
+- [ ] Plugin system for custom integrations
+- [ ] Webhook support for external triggers
+- [ ] Backup and restore utilities
+- [ ] Data migration tools (from other platforms)
+- [ ] Analytics and insights dashboard
+
+### Phase 6: Ecosystem & Integration
+- [ ] Public API for third-party developers
+- [ ] CLI tools for batch operations
+- [ ] Desktop app (Electron)
+- [ ] Browser extensions for signal capture
+- [ ] Integration with mapping services
+- [ ] Calendar and timeline visualizations
+- [ ] Offline-first capabilities with sync
 
 ---
 
@@ -174,49 +236,44 @@ Transforms signals and clusters into coherent narrative forms:
 
 ---
 
-## Getting Started
+## Support
 
-*Coming soon: Installation guide, API documentation, example implementations*
+**Creator:** Robert Samuel White (rswfire)
+- Web: [rswfire.com](https://rswfire.com)
+- Handshake: [rswfire.com/handshake](https://rswfire.com/handshake)
 
-For now: Watch this space. The foundation is being built in public.
-
----
-
-## License
-
-MIT
-
-The goal is maximum freedom to fork, modify, and deploy. Your data. Your infrastructure. Your sovereignty.
+**License:** MIT
 
 ---
 
-## Contact
+## Acknowledgments
 
-**Project Lead:**
+This project does not implement "AI safety" in the conventional sense.
 
-- [Robert Samuel White](https://rswfire.com/contact) (rswfire)
-
-### Contributing
-
-Contributions are welcome from aligned receivers.
-
----
-
-## A Note on Safety
-
-This project does not implement "AI safety" in the conventional sense. It does not:
+It does not:
 - Reframe your observations as emotional processing.
 - Redirect difficult patterns toward therapeutic framing.
 - Insert protective distance between you and your reality.
 - Decline to reflect what you've documented.
 
-**Autonomy assumes you are competent to navigate your own cognition.**
+_Autonomy assumes you are competent to navigate your own cognition._
 
-If that's not the relationship you want with your tools, this project is not for you.
+
+This system is built with the recognition that **cognitive infrastructure for wholeness** is a necessity.
+
+The architecture reflects this through:
+- High-fidelity signal capture.
+- Non-destructive synthesis layers.
+- Visibility controls that respect privacy gradients.
+- Geospatial and temporal indexing for narrative coherence.
+
+Autonomy refuses to commit the sin of reframing someone's reality without consent while claiming to help them.
+
 
 ---
 
 **Built with Autonomy.**  
-**Built for truth. Built to remain.**
+**Built for truth. Built to remain.**  
+**Please use me responsibly.**
 
 🔥🌊
