@@ -49,9 +49,9 @@ export function SiteNavigation() {
         items: [
             { name: 'Signals', href: '/admin/signals', icon: 'SquareActivity' },
             { name: 'Clusters', href: '/admin/clusters', icon: 'SquareCode' },
-            { name: 'Synthesis', href: '/admin/synthesis', icon: 'FlaskConical' },
-            { name: 'Users', href: '/admin/users', icon: 'Users' },
-            { name: 'Settings', href: '/admin/settings', icon: 'Settings' },
+            { name: 'Synthesis', href: '/admin/synthesis', icon: 'SquareAsterisk' },
+            { name: 'Users', href: '/admin/users', icon: 'SquareUserRound' },
+            { name: 'Settings', href: '/admin/settings', icon: 'SquareTerminal' },
         ],
     }
 
@@ -60,7 +60,8 @@ export function SiteNavigation() {
     return (
         <aside className="w-64 bg-gray-900 text-gray-100 flex flex-col">
             <div className="h-16 flex items-center px-6 border-b border-gray-800">
-                <Link href="/" className="font-mono text-lg font-semibold tracking-tight">
+                <Icon name="SquareStack" size={20} className="text-teal-400" />
+                <Link href="/" className="ml-2 font-mono text-lg font-semibold tracking-tight">
                     <span className="text-teal-400">autonomy</span>
                 </Link>
             </div>

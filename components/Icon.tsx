@@ -2,28 +2,32 @@
 import {
     ChevronRight,
     Compass,
-    FlaskConical,
     HelpCircle,
     Home,
     LucideProps,
     Plus,
     Settings,
     SquareActivity,
+    SquareAsterisk,
     SquareCode,
-    Users,
+    SquareStack,
+    SquareTerminal,
+    SquareUserRound,
 } from 'lucide-react';
 
 const iconMap = {
     ChevronRight,
     Compass,
-    FlaskConical,
     HelpCircle,
     Home,
     Plus,
     Settings,
     SquareActivity,
+    SquareAsterisk,
     SquareCode,
-    Users,
+    SquareStack,
+    SquareTerminal,
+    SquareUserRound,
 } as const;
 
 export type IconName = keyof typeof iconMap;
