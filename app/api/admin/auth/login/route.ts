@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/queries/user'
 import type { AuthPayload } from '@/lib/types/auth'
 
+const JWT_SECRET = new TextEncoder().encode(
+    process.env.JWT_SECRET || 'your-secret-key-here'
+)
+
 export async function POST(request: NextRequest) {
     console.log('🔐 Login attempt started')
 
