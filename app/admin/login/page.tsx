@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 
 interface LoginForm {
-    email: string
-    password: string
+    user_email: string
+    user_password: string
 }
 
 export default function AdminLoginPage() {
@@ -68,12 +68,12 @@ export default function AdminLoginPage() {
                         </label>
                         <input
                             type="email"
-                            {...register('email', { required: 'Email is required' })}
+                            {...register('user_email', { required: 'Email is required' })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="you@example.com"
                         />
-                        {errors.email && (
-                            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                        {errors.user_email && (
+                            <p className="mt-1 text-sm text-red-600">{errors.user_email.message}</p>
                         )}
                     </div>
 
@@ -83,12 +83,12 @@ export default function AdminLoginPage() {
                         </label>
                         <input
                             type="password"
-                            {...register('password', { required: 'Password is required' })}
+                            {...register('user_password', { required: 'Password is required' })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="••••••••"
                         />
-                        {errors.password && (
-                            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                        {errors.user_password && (
+                            <p className="mt-1 text-sm text-red-600">{errors.user_password.message}</p>
                         )}
                     </div>
 
