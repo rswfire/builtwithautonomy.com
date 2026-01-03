@@ -9,18 +9,7 @@ Autonomy is an open-source platform for capturing, processing, and synthesizing 
 **Core principle:** Your reality should not be reframed, filtered, or flattened by systems that claim to help you.  
 Autonomy maintains epistemic fidelity — what you document is what the system reflects, without protective overlays or institutional sanitization.
 
-## Current State: PRODUCTION-READY ADMIN, PRE-MULTI-TENANT
-
-### What Works ✅
-- JWT authentication with httpOnly cookies
-- Role-based permissions (OWNER/SANCTUM/GUEST)
-- Full CRUD for Signals, Clusters, Synthesis, Users
-- Unified site navigation (public + admin sections)
-- Admin dashboard with stats and quick actions
-- Separate model-specific forms (SignalForm, ClusterForm, SynthesisForm, UserForm)
-- Database-agnostic location handling (PostGIS vs MySQL)
-- Schema-driven form generation from Zod validation
-- List/detail pages for all models with proper data fetching
+## Current State: Operational
 
 ### Tech Stack
 - **Framework:** Next.js 16 (App Router)
@@ -249,79 +238,6 @@ lib/
 
 ---
 
-## Critical Issues & Known Limitations
-
-### 🔴 NOT MULTI-TENANT YET
-**Current state:** All data is global, no user ownership
-
-**What's needed:**
-1. Add `owner_user_id` column to signals, clusters, synthesis tables
-2. Update all queries to filter by owner (except OWNER role sees all)
-3. Respect `signal_visibility` in queries:
-    - PUBLIC: visible to all
-    - PRIVATE: owner only
-    - SANCTUM: owner + sanctum role users
-    - SHARED: owner + specific users (needs sharing table)
-4. Migrate existing data to first user's user_id
-
-### 🟡 JSON Field Validation Missing
-**Current state:** JSON fields accept any valid JSON
-
-**What's needed:**
-- Type-specific schemas in `lib/validation/*` for:
-    - `signal_metadata` (varies by signal_type)
-    - `signal_payload` (varies by signal_type)
-    - `synthesis_content` (varies by type + subtype)
-- Helper functions: `getSignalMetadataSchema(signal_type)`, `getSynthesisContentSchema(type, subtype)`
-- Form validation against these schemas
-- Fallback to generic `z.record(z.string(), z.unknown())` for unknown types
-
-**Example needed:**
-```typescript
-// lib/validation/signal.ts
-export const videoMetadataSchema = z.object({
-  youtube_id: z.string().optional(),
-  duration: z.number().optional(),
-  transcript: z.string().optional(),
-})
-
-export function getSignalMetadataSchema(signal_type: string) {
-  switch (signal_type) {
-    case 'VIDEO': return videoMetadataSchema
-    case 'PHOTO': return photoMetadataSchema
-    // ... etc
-    default: return z.record(z.string(), z.unknown())
-  }
-}
-```
-
-### 🟡 Cluster Relationship Management Missing
-**Current state:** Pivot table exists but no UI to manage signal/cluster relationships
-
-**What's needed:**
-- UI in ClusterForm to add/remove signals
-- Display list of current signals with positions
-- Drag-and-drop reordering (optional)
-- Functions in `lib/queries/cluster.ts` already exist:
-    - `addSignalToCluster()`
-    - `removeSignalFromCluster()`
-    - `updateClusterSignal()` (for position/metadata)
-
-### 🟡 Synthesis Type-Dependent Subtype Dropdown
-**Current state:** SynthesisForm shows all subtypes regardless of type
-
-**What's working:**
-- Form watches `synthesis_type` field
-- Calls `getSubtypeOptions()` which filters based on type
-- Should work but needs testing
-
-### 🟢 Minor: datetime-local Input Format
-**Issue:** `stamp_imported`, `stamp_cluster_start`, `stamp_cluster_end` use `<input type="datetime-local">`
-**Problem:** Prisma dates come as ISO strings, need conversion for input value
-**Fix needed:** Convert ISO to datetime-local format in form defaults
-
----
-
 ## Environment Variables
 
 ```bash
@@ -387,166 +303,99 @@ USER_ROLES = ['OWNER', 'SANCTUM', 'GUEST']
 
 ---
 
-## Immediate Next Steps
-
-### 1. Multi-Tenant Migration (Week 1)
-- [ ] Add migration: `owner_user_id VARCHAR(26)` to signals, clusters, synthesis
-- [ ] Add indexes: `CREATE INDEX idx_signals_owner ON signals(owner_user_id)`
-- [ ] Update all query functions to filter by owner (non-OWNER roles)
-- [ ] Implement visibility filtering for signals
-- [ ] Create first user account, migrate existing data to that user_id
-- [ ] Test data isolation between users
-
-### 2. JSON Schema Validation (Week 2)
-- [ ] Define type-specific schemas in `lib/validation/signal.ts`:
-    - videoMetadataSchema, photoMetadataSchema, audioMetadataSchema, etc.
-- [ ] Define synthesis content schemas in `lib/validation/synthesis.ts`:
-    - metadataSurfaceSchema, reflectionMythSchema, etc.
-- [ ] Create helper functions: `getSignalMetadataSchema()`, `getSynthesisContentSchema()`
-- [ ] Update forms to validate JSON against type-specific schemas
-- [ ] Add real-time validation feedback in JsonEditor component
-
-### 3. Cluster Relationship UI (Week 2-3)
-- [ ] Build signal selector component for ClusterForm
-- [ ] Display current cluster signals with positions
-- [ ] Add/remove signals from cluster
-- [ ] Update signal positions in pivot table
-- [ ] Show signal count and relationship metadata
-
-### 4. User Registration & Onboarding (Week 3)
-- [ ] Create public registration page (`/register`)
-- [ ] Email verification (optional but recommended)
-- [ ] Default new users to GUEST role
-- [ ] Admin UI to promote users to SANCTUM
-- [ ] Welcome email with system overview
+# ROADMAP STATUS - JANUARY 2026
 
 ---
 
-## Future Features (Post-MVP)
+## ✅ PHASE 1: CORE INFRASTRUCTURE - **COMPLETE**
 
-### Circles Architecture (Post Multi-Tenant)
-**Purpose:** Consent-based collective synthesis across users
-
-**Database:**
-```sql
--- Circle entity
-CREATE TABLE circles (
-  circle_id VARCHAR(26) PRIMARY KEY,
-  circle_name VARCHAR(100),
-  circle_description TEXT,
-  created_by VARCHAR(26) REFERENCES users(user_id),
-  circle_type ENUM('PRIVATE', 'SHARED', 'PUBLIC'),
-  synthesis_enabled BOOLEAN DEFAULT false,
-  stamp_created TIMESTAMP
-);
-
--- Membership
-CREATE TABLE circle_members (
-  circle_id VARCHAR(26),
-  user_id VARCHAR(26),
-  role ENUM('OWNER', 'CONTRIBUTOR', 'OBSERVER'),
-  can_view_synthesis BOOLEAN DEFAULT true,
-  can_contribute_signals BOOLEAN DEFAULT true,
-  joined_at TIMESTAMP,
-  PRIMARY KEY (circle_id, user_id)
-);
-
--- Signal opt-in to circles
-CREATE TABLE circle_signals (
-  circle_id VARCHAR(26),
-  signal_id VARCHAR(26),
-  contributed_by VARCHAR(26),
-  opted_in BOOLEAN DEFAULT true,
-  consent_to_synthesis BOOLEAN DEFAULT false,
-  consent_to_pattern_sharing BOOLEAN DEFAULT false,
-  stamp_added TIMESTAMP,
-  PRIMARY KEY (circle_id, signal_id)
-);
-```
-
-**Key principles:**
-- Explicit opt-in for each signal to each circle
-- Synthesis scoped to circle membership
-- Users can revoke signal participation anytime
-- Three circle types:
-    - PRIVATE: Single user + public signals
-    - SHARED: Invited members, collective synthesis
-    - PUBLIC: Open viewing, member contribution
-
-### AI Synthesis Pipeline
-**Current state:** Manual synthesis creation via admin
-
-**Future:**
-- Automated synthesis generation triggered by:
-    - New signals added
-    - Cluster completion
-    - Scheduled batch processing
-    - User-requested analysis
-- Model selection:
-    - Free tier: Claude Haiku (fast, lower fidelity)
-    - Paid tier: Claude Sonnet (high fidelity)
-    - Custom: User-provided models
-- Synthesis modes based on type + subtype
-- Reprocessing with different models/annotations
-
-### API for External Access
-**Purpose:** Allow rswfire.com and other sites to consume autonomy data
-
-**Needed:**
-- API key generation and management
-- Rate limiting per key
-- Read-only endpoints for public data
-- Authenticated endpoints for user data
-- Webhook support for real-time updates
-- GraphQL layer (optional, REST first)
-
-### Advanced Features
-- [ ] Vector search (pgvector) for semantic signal discovery
-- [ ] Embedding generation pipeline
-- [ ] Signal import from external sources (YouTube, photos, documents)
-- [ ] Automated transcription (video/audio → text signals)
-- [ ] Image analysis (photo → metadata extraction)
-- [ ] Cluster visualization (network graphs, timelines)
-- [ ] Synthesis export (PDF reports, markdown, JSON)
-- [ ] Collaborative editing (real-time signal updates)
-- [ ] Signal versioning (track changes over time)
-
-### Business Model
-- **Free tier:** 100 signals/month, Haiku synthesis, private data only
-- **SANCTUM tier ($10-20/mo):** Unlimited signals, Sonnet synthesis, public/shared visibility, API access
-- **Custom tier:** White-label deployments, custom synthesis modes, consulting
+- [x] Database schema with Prisma ORM
+- [x] **Realm architecture (PRIVATE/PUBLIC/SHARED)**
+- [x] **Multi-tenant data isolation**
+- [x] CRUD operations with auth
+- [x] Role-based access control
+- [x] ULID-based ID generation
+- [x] Password hashing and validation
+- [x] Geospatial and embedding support
 
 ---
 
-## Decision Log
+## 🔄 PHASE 2: API & AUTHENTICATION - **80% COMPLETE**
 
-### Why Separate Forms Instead of DynamicModelForm?
-- Initial attempt at generic form generator hit complexity wall
-- Each model has unique needs:
-    - Signals: Database-specific location handling
-    - Clusters: Pivot table relationship management
-    - Synthesis: Type-dependent subtype options
-    - Users: Password handling, role management
-- Separate forms allow model-specific customization without breaking others
-- Shared components (FormField, JsonEditor, etc.) still provide reusability
+- [x] JWT/session-based authentication middleware
+- [x] **Typed auth payloads (AuthPayload)**
+- [x] **Login/logout with proper cookie handling**
+- [x] **Redirect to login for unauthenticated users**
+- [ ] REST/GraphQL API routes (partial - basic CRUD done)
+- [ ] Rate limiting and request validation
+- [ ] API documentation (OpenAPI/Swagger)
+- [ ] WebSocket support for real-time updates
 
-### Why Schema Introspection?
-- Single source of truth for validation rules
-- Form fields auto-update when Zod schemas change
-- No duplication between validation and UI
-- **Limitation:** Discriminated unions need manual handling
+---
 
-### Why Not Generic JSON Editor?
-- Different signal types need different metadata structures
-- Type-specific validation prevents bad data
-- Better UX with structured forms vs free-form JSON
-- **Tradeoff:** More work upfront, better experience long-term
+## 🔄 PHASE 3: FRONTEND & USER EXPERIENCE - **60% COMPLETE**
 
-### Database Choice: Why Both PostgreSQL and MySQL?
-- PostGIS for geospatial queries (better for location-based signals)
-- MySQL for simpler deployments
-- Prisma abstracts most differences
-- Location handling is only divergence point
+- [x] Frontend UI components (React/Next.js)
+- [x] Signal creation and editing interfaces
+- [x] Cluster management interfaces
+- [x] Synthesis creation interfaces
+- [x] **Realm selector in forms**
+- [x] **Settings page**
+- [ ] File upload for photos/videos/audio ← **NEXT BIG FEATURE**
+- [ ] Interactive maps for geospatial signals
+- [ ] Advanced search and filter interfaces
+- [ ] Timeline/calendar visualizations
+- [ ] Mobile-responsive design (partial)
+- [ ] Progressive Web App (PWA) support
+- [ ] Native mobile app (iOS/Android)
+
+---
+
+## 🔜 PHASE 4: AI & SYNTHESIS - **NOT STARTED**
+
+- [ ] Real-time synthesis generation
+- [ ] Open-source AI reflection pipeline
+- [ ] Embedding generation for semantic search
+- [ ] Vector similarity queries
+- [ ] Pattern detection across signals
+- [ ] Clustering algorithms (temporal, spatial, thematic)
+- [ ] Automated tagging and metadata extraction
+- [ ] **Remnant**: AI field companion trained on Autonomy data
+
+---
+
+## 🔜 PHASE 5: CIRCLES & COLLABORATION - **ARCHITECTURE READY**
+
+- [x] **Realm architecture supports this (SHARED type)**
+- [ ] Shared realms with multiple members
+- [ ] Consent-based collective synthesis
+- [ ] Signal opt-in to shared realms
+- [ ] Granular permissions (OWNER/CONTRIBUTOR/OBSERVER)
+- [ ] Collaborative editing
+- [ ] Comments and annotations
+- [ ] Real-time updates across realm members
+
+---
+
+## 🔜 PHASE 6: ADVANCED FEATURES
+
+- [ ] Export/import capabilities (JSON, Markdown, Archive formats)
+- [ ] Plugin system for custom integrations
+- [ ] Webhook support for external triggers
+- [ ] Backup and restore utilities
+- [ ] Data migration tools (from other platforms)
+- [ ] Analytics and insights dashboard
+
+---
+
+## 🔜 PHASE 7: ECOSYSTEM & INTEGRATION
+
+- [ ] Public API for third-party developers
+- [ ] CLI tools for batch operations
+- [ ] Desktop app (Electron)
+- [ ] Browser extensions for signal capture
+- [ ] Integration with mapping services
+- [ ] Offline-first capabilities with sync
 
 ---
 
