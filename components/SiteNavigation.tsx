@@ -1,4 +1,3 @@
-// components/SiteNavigation.tsx
 'use client'
 
 import Link from 'next/link'
@@ -19,18 +18,24 @@ interface NavSection {
 
 export function SiteNavigation() {
     const pathname = usePathname()
+
     const [isOwner, setIsOwner] = useState(false)
+    const [userEmail, setUserEmail] = useState<string | null>(null)
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
                 const response = await fetch('/api/admin/auth/check')
                 const data = await response.json()
+
                 setIsOwner(data.authenticated)
+                setUserEmail(data.email ?? null)
             } catch {
                 setIsOwner(false)
+                setUserEmail(null)
             }
         }
+
         checkAuth()
     }, [pathname])
 
@@ -39,6 +44,7 @@ export function SiteNavigation() {
             title: 'Main',
             items: [
                 { name: 'Home', href: '/', icon: 'Home' },
+                { name: 'Dashboard', href: '/admin', icon: 'SquareTerminal' },
                 { name: 'Docs', href: '/docs', icon: 'BookOpen' },
             ],
         },
@@ -94,20 +100,13 @@ export function SiteNavigation() {
         ],
     }
 
-    // Determine which sections to show
     const isDocsPage = pathname.startsWith('/docs')
 
-    let sections: NavSection[]
-    if (isDocsPage) {
-        // Show docs navigation
-        sections = [...publicSections, ...docsSections]
-    } else if (isOwner) {
-        // Show admin navigation
-        sections = [...publicSections, adminSection]
-    } else {
-        // Show only public
-        sections = publicSections
-    }
+    const sections: NavSection[] = isDocsPage
+        ? [...publicSections, ...docsSections]
+        : isOwner
+            ? [...publicSections, adminSection]
+            : publicSections
 
     return (
         <aside className="w-64 bg-gray-900 text-gray-100 flex flex-col">
@@ -118,6 +117,18 @@ export function SiteNavigation() {
                 </Link>
             </div>
 
+            {userEmail && (
+                <div className="border-b border-gray-800 px-4 py-3 text-xs text-gray-500">
+                    <div className="mb-1">{userEmail}</div>
+                    <Link
+                        href="/admin/logout"
+                        className="text-teal-400 hover:underline transition"
+                    >
+                        Logout
+                    </Link>
+                </div>
+            )}
+
             <nav className="flex-1 px-3 py-6 overflow-y-auto">
                 {sections.map((section) => (
                     <div key={section.title} className="mb-8">
@@ -126,23 +137,26 @@ export function SiteNavigation() {
                         </h3>
                         <div className="space-y-1">
                             {section.items.map((item) => {
-                                const isActive = pathname === item.href ||
-                                    (item.href !== '/' && item.href !== '/docs' && pathname.startsWith(item.href))
+                                const isActive =
+                                    pathname === item.href ||
+                                    (item.href !== '/' &&
+                                        item.href !== '/docs' &&
+                                        pathname.startsWith(item.href))
 
                                 return (
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`
-                                            flex items-center px-3 py-2.5 rounded-lg transition-colors
-                                            ${isActive
-                                            ? 'bg-gray-800 text-teal-400'
-                                            : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'
-                                        }
-                                        `}
+                                        className={`flex items-center px-3 py-2.5 rounded-lg transition-colors ${
+                                            isActive
+                                                ? 'bg-gray-800 text-teal-400'
+                                                : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'
+                                        }`}
                                     >
                                         <Icon name={item.icon} size={20} />
-                                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                                        <span className="ml-3 text-sm font-medium">
+                                            {item.name}
+                                        </span>
                                     </Link>
                                 )
                             })}
