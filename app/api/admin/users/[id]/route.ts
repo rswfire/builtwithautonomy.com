@@ -1,6 +1,6 @@
 // app/api/admin/users/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { getUserById, updateUser, deleteUser } from '@/lib/queries/user'
 import { updateUserSchema } from '@/lib/validation/user'
 
@@ -10,7 +10,7 @@ export async function GET(
 ) {
     const params = await context.params
     try {
-        const currentUser = await requireAuth()
+        const currentUser = await requireAuthAPI ()
         const user = await getUserById(params.id)
 
         if (!user) {
@@ -34,7 +34,7 @@ export async function PATCH(
 ) {
     const params = await context.params
     try {
-        const currentUser = await requireAuth()
+        const currentUser = await requireAuthAPI ()
         const body = await request.json()
         const validated = updateUserSchema.parse({ user_id: params.id, ...body })
         const user = await updateUser(validated)
@@ -59,7 +59,7 @@ export async function DELETE(
 ) {
     const params = await context.params
     try {
-        const currentUser = await requireAuth()
+        const currentUser = await requireAuthAPI ()
         await deleteUser(params.id)
         return NextResponse.json({ success: true })
     } catch (error) {

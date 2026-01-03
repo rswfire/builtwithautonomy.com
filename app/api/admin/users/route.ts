@@ -1,12 +1,12 @@
 // app/api/admin/users/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { listUsers, createUser } from '@/lib/queries/user'
 import { createUserSchema } from '@/lib/validation/user'
 
 export async function GET(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const users = await listUsers({ limit: 100, offset: 0 })
         return NextResponse.json({ users })
     } catch (error) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const currentUser = await requireAuth()
+        const currentUser = await requireAuthAPI ()
         const body = await request.json()
         const validated = createUserSchema.parse(body)
         const user = await createUser(validated)

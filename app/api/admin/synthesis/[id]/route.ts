@@ -1,6 +1,6 @@
 // app/api/admin/synthesis/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { getSynthesisById, updateSynthesis, deleteSynthesis } from '@/lib/queries/synthesis'
 import { updateSynthesisSchema } from '@/lib/validation/synthesis'
 
@@ -10,7 +10,7 @@ export async function GET(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const synthesis = await getSynthesisById(params.id, user.user_id)
 
         if (!synthesis) {
@@ -32,7 +32,7 @@ export async function PATCH(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
         const validated = updateSynthesisSchema.parse({ synthesis_id: params.id, ...body })
         const synthesis = await updateSynthesis(validated, user.user_id)
@@ -54,7 +54,7 @@ export async function DELETE(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         await deleteSynthesis(params.id, user.user_id)
         return NextResponse.json({ success: true })
     } catch (error) {

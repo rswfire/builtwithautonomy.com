@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { updateRealm, deleteRealm, userHasRealmAccess } from '@/lib/queries/realm'
 import { prisma } from '@/lib/db'
 
@@ -8,7 +8,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
-    const user = await requireAuth()
+    const user = await requireAuthAPI ()
     const hasAccess = await userHasRealmAccess(user.user_id, id)
 
     if (!hasAccess) {
@@ -27,7 +27,7 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
-    const user = await requireAuth()
+    const user = await requireAuthAPI ()
     const body = await request.json()
 
     // Only realm creator can update
@@ -49,7 +49,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
-    const user = await requireAuth()
+    const user = await requireAuthAPI ()
 
     const realm = await prisma.realm.findUnique({
         where: { realm_id: id },

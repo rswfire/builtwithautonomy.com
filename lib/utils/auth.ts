@@ -1,5 +1,6 @@
 // lib/utils/auth.ts
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { jwtVerify } from 'jose'
 import type { AuthPayload } from '@/lib/types/auth'
 
@@ -30,14 +31,28 @@ export async function getCurrentUser(): Promise<AuthPayload | null> {
 }
 
 /**
- * Require authentication - throws if not authenticated
- * Use this in API routes and server components that require auth
+ * Require authentication - redirects to login if not authenticated
+ * Use this in server components (pages)
  */
 export async function requireAuth(): Promise<AuthPayload> {
     const user = await getCurrentUser()
 
     if (!user) {
-        throw new Error('Not authenticated')
+        redirect('/admin/login')  // ← Redirect instead of throw
+    }
+
+    return user
+}
+
+/**
+ * Require authentication for API routes - throws if not authenticated
+ * Use this in API route handlers
+ */
+export async function requireAuthAPI(): Promise<AuthPayload> {
+    const user = await getCurrentUser()
+
+    if (!user) {
+        throw new Error('Not authenticated')  // ← API routes should throw
     }
 
     return user

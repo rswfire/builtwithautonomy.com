@@ -1,12 +1,12 @@
 // app/api/admin/clusters/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { queryClusters, createCluster } from '@/lib/queries/cluster'
 import { createClusterSchema } from '@/lib/validation/cluster'
 
 export async function GET(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const { clusters } = await queryClusters({
             limit: 100,
             offset: 0,
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
         const validated = createClusterSchema.parse(body)
         const cluster = await createCluster(validated, user.user_id)

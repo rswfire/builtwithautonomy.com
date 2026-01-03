@@ -2,11 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { querySignals, createSignal } from '@/lib/queries/signal'
 import { createSignalSchema } from '@/lib/validation/signal'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 
 export async function GET(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const { signals } = await querySignals(
             {
                 limit: 100,
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
 
         const validated = createSignalSchema.parse(body)

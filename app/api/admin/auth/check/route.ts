@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 
 export async function GET(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
 
         return NextResponse.json({
             authenticated: true,

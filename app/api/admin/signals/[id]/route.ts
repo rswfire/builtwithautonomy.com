@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSignalById, updateSignal, deleteSignal } from '@/lib/queries/signal'
 import { updateSignalSchema } from '@/lib/validation/signal'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 
 export async function GET(
     request: NextRequest,
@@ -11,7 +11,7 @@ export async function GET(
     const params = await context.params
 
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const signal = await getSignalById(params.id, user.user_id)
 
         if (!signal) {
@@ -41,7 +41,7 @@ export async function PATCH(
     const params = await context.params
 
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
 
         const dataWithId = {
@@ -80,7 +80,7 @@ export async function DELETE(
     const params = await context.params
 
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         await deleteSignal(params.id, user.user_id)
 
         return NextResponse.json({ success: true })

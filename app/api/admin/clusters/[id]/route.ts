@@ -1,6 +1,6 @@
 // app/api/admin/clusters/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { getClusterById, updateCluster, deleteCluster } from '@/lib/queries/cluster'
 import { updateClusterSchema } from '@/lib/validation/cluster'
 
@@ -10,7 +10,7 @@ export async function GET(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const cluster = await getClusterById(params.id, user.user_id)
 
         if (!cluster) {
@@ -32,7 +32,7 @@ export async function PATCH(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
         const validated = updateClusterSchema.parse({ cluster_id: params.id, ...body })
         const cluster = await updateCluster(validated, user.user_id)
@@ -54,7 +54,7 @@ export async function DELETE(
 ) {
     const params = await context.params
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         await deleteCluster(params.id, user.user_id)
         return NextResponse.json({ success: true })
     } catch (error) {

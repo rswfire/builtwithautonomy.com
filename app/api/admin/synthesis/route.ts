@@ -1,12 +1,12 @@
 // app/api/admin/synthesis/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
+import { requireAuthAPI  } from '@/lib/utils/auth'
 import { querySynthesis, createSynthesis } from '@/lib/queries/synthesis'
 import { createSynthesisSchema } from '@/lib/validation/synthesis'
 
 export async function GET(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const { synthesis } = await querySynthesis({
             limit: 100,
             offset: 0,
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const user = await requireAuth()
+        const user = await requireAuthAPI ()
         const body = await request.json()
         const validated = createSynthesisSchema.parse(body)
         const synthesis = await createSynthesis(validated, user.user_id)
