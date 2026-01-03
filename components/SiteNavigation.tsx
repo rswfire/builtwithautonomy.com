@@ -32,7 +32,7 @@ export function SiteNavigation() {
             }
         }
         checkAuth()
-    }, [])
+    }, [pathname])
 
     const publicSections: NavSection[] = [
         {
