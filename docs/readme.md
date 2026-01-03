@@ -258,3 +258,7 @@ Autonomy refuses to commit the sin of reframing someone's reality without consen
 **Please use me responsibly.**
 
 🔥🌊
+
+---
+
+> [Readme](/docs/readme.md) | [Roadmap](/docs/roadmap.md) | [Setup](/docs/setup.md) | [Myth](/docs/myth.md)

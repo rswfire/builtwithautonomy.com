@@ -265,3 +265,7 @@ sudo systemctl reload nginx
 5. **Environment**: Never commit `.env` file.
 6. **HTTPS**: Always use SSL in production.
 7. **Headers**: Privacy and security headers in nginx config.
+
+---
+
+> [Readme](/docs/readme.md) | [Roadmap](/docs/roadmap.md) | [Setup](/docs/setup.md) | [Myth](/docs/myth.md)

@@ -547,3 +547,7 @@ CREATE TABLE circle_signals (
 - MySQL for simpler deployments
 - Prisma abstracts most differences
 - Location handling is only divergence point
+
+---
+
+> [Readme](/docs/readme.md) | [Roadmap](/docs/roadmap.md) | [Setup](/docs/setup.md) | [Myth](/docs/myth.md)
