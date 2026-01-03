@@ -37,4 +37,4 @@ echo "✅ Build successful"
 echo "📍 Commit: $(git rev-parse --short HEAD)"
 echo "⏱  Finished: $(date)"
 
-sudo systemctl restart builtwithautonomy
+systemctl restart builtwithautonomy
