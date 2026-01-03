@@ -22,9 +22,94 @@ const coordinatesSchema = z.object({
 const geographyPointSchema = z.object({
     type: z.literal('Point'),
     coordinates: z.tuple([
-        z.number().min(GEO.LONGITUDE_MIN).max(GEO.LONGITUDE_MAX), // longitude first per GeoJSON
-        z.number().min(GEO.LATITUDE_MIN).max(GEO.LATITUDE_MAX),   // latitude second
+        z.number().min(GEO.LONGITUDE_MIN).max(GEO.LONGITUDE_MAX),
+        z.number().min(GEO.LATITUDE_MIN).max(GEO.LATITUDE_MAX),
     ]),
+})
+
+// ====================
+// TYPE-SPECIFIC METADATA SCHEMAS
+// ====================
+
+// DOCUMENT
+const documentMetadataSchema = z.object({
+    word_count: z.number().optional(),
+    character_count: z.number().optional(),
+    language: z.string().optional(),
+    file_extension: z.string().optional(),
+    encoding: z.string().optional(),
+    mime_type: z.string().optional(),
+})
+
+// PHOTO
+const photoMetadataSchema = z.object({
+    // EXIF data
+    camera: z.string().optional(),
+    lens: z.string().optional(),
+    iso: z.number().optional(),
+    aperture: z.string().optional(),
+    shutter_speed: z.string().optional(),
+    focal_length: z.number().optional(),
+
+    // Image properties
+    width: z.number().optional(),
+    height: z.number().optional(),
+    file_size: z.number().optional(),
+    mime_type: z.string().optional(),
+    color_space: z.string().optional(),
+
+    // Capture details
+    timestamp_original: z.string().optional(),
+    gps_altitude: z.number().optional(),
+})
+
+// TRANSMISSION
+const transmissionMetadataSchema = z.object({
+    // Source
+    source_type: z.enum(['audio', 'video', 'other']),
+    source_url: z.string().optional(),
+
+    // YouTube-specific (optional, always available)
+    youtube_id: z.string().optional(),
+    youtube_channel: z.string().optional(),
+    youtube_published_at: z.string().optional(),
+    youtube_thumbnail: z.string().optional(),
+
+    // Timestamps for navigation
+    timestamps: z.array(z.object({
+        topic: z.string(),
+        timestamp: z.string(),
+    })).optional(),
+
+    // Technical properties
+    duration: z.number().optional(),
+    bitrate: z.number().optional(),
+    sample_rate: z.number().optional(),
+    channels: z.number().optional(),
+    codec: z.string().optional(),
+    file_size: z.number().optional(),
+    mime_type: z.string().optional(),
+
+    // Video-specific
+    width: z.number().optional(),
+    height: z.number().optional(),
+    framerate: z.number().optional(),
+
+    // Processing
+    has_transcript: z.boolean().optional(),
+    transcript_method: z.enum(['ai', 'manual', 'imported']).optional(),
+})
+
+// CONVERSATION
+const conversationMetadataSchema = z.object({
+    platform: z.enum(['claude', 'chatgpt', 'gemini', 'remnant', 'other']).optional(),
+    model: z.string().optional(),
+    message_count: z.number().optional(),
+    turn_count: z.number().optional(),
+    duration_minutes: z.number().optional(),
+    total_tokens: z.number().optional(),
+    started_at: z.string().optional(),
+    ended_at: z.string().optional(),
 })
 
 // ====================
@@ -37,14 +122,6 @@ const documentPayloadSchema = z.object({
     format: z.enum(['plain', 'markdown', 'html']).default('plain'),
 })
 
-const documentMetadataSchema = z.object({
-    word_count: z.number().optional(),
-    language: z.string().optional(),
-    character_count: z.number().optional(),
-    file_extension: z.string().optional(),
-    encoding: z.string().optional(),
-})
-
 // PHOTO
 const photoPayloadSchema = z.object({
     file_path: z.string(),
@@ -52,41 +129,15 @@ const photoPayloadSchema = z.object({
     original_filename: z.string().optional(),
 })
 
-const photoMetadataSchema = z.object({
-    camera: z.string().optional(),
-    lens: z.string().optional(),
-    iso: z.number().optional(),
-    aperture: z.string().optional(),
-    shutter_speed: z.string().optional(),
-    focal_length: z.number().optional(),
-    width: z.number().optional(),
-    height: z.number().optional(),
-    file_size: z.number().optional(),
-    mime_type: z.string().optional(),
-})
-
 // TRANSMISSION
 const transmissionPayloadSchema = z.object({
-    file_path: z.string(),
+    file_path: z.string().optional(),
     transcript: z.string().optional(),
-    mime_type: z.string().optional(),
-})
-
-const transmissionMetadataSchema = z.object({
-    source_type: z.enum(['local', 'youtube', 'vimeo', 'podcast']).optional(),
-    youtube_id: z.string().optional(),
-    youtube_channel: z.string().optional(),
-    youtube_published_at: z.string().optional(),
-    duration: z.number().optional(),
-    bitrate: z.number().optional(),
-    sample_rate: z.number().optional(),
-    channels: z.number().optional(),
-    codec: z.string().optional(),
-    file_size: z.number().optional(),
-    // Video-specific
-    width: z.number().optional(),
-    height: z.number().optional(),
-    framerate: z.number().optional(),
+    timed_transcript: z.array(z.object({
+        text: z.string(),
+        start: z.number(),
+        end: z.number(),
+    })).optional(),
 })
 
 // CONVERSATION
@@ -95,33 +146,32 @@ const conversationPayloadSchema = z.object({
         role: z.enum(['user', 'assistant']),
         content: z.string(),
         timestamp: z.string().optional(),
+        metadata: z.object({
+            tokens: z.number().optional(),
+            model: z.string().optional(),
+            tool_calls: z.array(z.string()).optional(),
+        }).optional(),
     })),
-    platform: z.enum(['claude', 'chatgpt', 'other']).optional(),
-})
-
-const conversationMetadataSchema = z.object({
-    message_count: z.number().optional(),
-    duration_minutes: z.number().optional(),
-    model: z.string().optional(),
-    total_tokens: z.number().optional(),
+    summary: z.string().optional(),
+    key_points: z.array(z.string()).optional(),
 })
 
 // ====================
 // SCHEMA MAPS
 // ====================
 
-export const signalPayloadSchemas = {
-    DOCUMENT: documentPayloadSchema,
-    PHOTO: photoPayloadSchema,
-    TRANSMISSION: transmissionPayloadSchema,
-    CONVERSATION: conversationPayloadSchema,
-} as const
-
 export const signalMetadataSchemas = {
     DOCUMENT: documentMetadataSchema,
     PHOTO: photoMetadataSchema,
     TRANSMISSION: transmissionMetadataSchema,
     CONVERSATION: conversationMetadataSchema,
+} as const
+
+export const signalPayloadSchemas = {
+    DOCUMENT: documentPayloadSchema,
+    PHOTO: photoPayloadSchema,
+    TRANSMISSION: transmissionPayloadSchema,
+    CONVERSATION: conversationPayloadSchema,
 } as const
 
 // ====================
@@ -171,7 +221,7 @@ export const signalSchema = z.object({
         .default(0.0)
         .optional(),
 
-    // Geospatial (one or the other depending on DB)
+    // Geospatial
     signal_latitude: z.number().min(GEO.LATITUDE_MIN).max(GEO.LATITUDE_MAX).nullable().optional(),
     signal_longitude: z.number().min(GEO.LONGITUDE_MIN).max(GEO.LONGITUDE_MAX).nullable().optional(),
     signal_location: geographyPointSchema.nullable().optional(),
@@ -193,7 +243,6 @@ export const signalSchema = z.object({
     stamp_imported: z.date().nullable().optional(),
 })
 
-// Create signal (required fields only)
 export const createSignalSchema = signalSchema.pick({
     realm_id: true,
     signal_type: true,
@@ -205,17 +254,16 @@ export const createSignalSchema = signalSchema.pick({
     signal_status: true,
     signal_visibility: true,
 }).extend({
-    // Optional location (either format)
     coordinates: coordinatesSchema.optional(),
     signal_location: geographyPointSchema.nullable().optional(),
 
     signal_metadata: z.record(z.string(), z.unknown()).optional(),
     signal_payload: z.record(z.string(), z.unknown()).optional(),
     signal_tags: z.array(z.string()).optional(),
+    stamp_created: z.date().optional(),
     stamp_imported: z.date().optional(),
 })
 
-// Update signal (all fields optional except id)
 export const updateSignalSchema = z.object({
     signal_id: z.string().length(26).refine(isValidUlid, 'Invalid ULID'),
     signal_type: z.enum(SIGNAL_TYPES).optional(),
@@ -244,7 +292,6 @@ export const updateSignalSchema = z.object({
     signal_embedding: z.array(z.number()).length(LIMITS.EMBEDDING_DIMENSIONS).nullable().optional(),
 })
 
-// Query/filter schema
 export const signalFilterSchema = z.object({
     signal_type: z.enum(SIGNAL_TYPES).optional(),
     signal_context: z.enum(SIGNAL_CONTEXT).optional(),
@@ -252,40 +299,32 @@ export const signalFilterSchema = z.object({
     signal_status: z.enum(SIGNAL_STATUS).optional(),
     signal_visibility: z.enum(SIGNAL_VISIBILITY).optional(),
 
-    // Temperature range
     temperature_min: z.number().min(LIMITS.SIGNAL_TEMPERATURE_MIN).max(LIMITS.SIGNAL_TEMPERATURE_MAX).optional(),
     temperature_max: z.number().min(LIMITS.SIGNAL_TEMPERATURE_MIN).max(LIMITS.SIGNAL_TEMPERATURE_MAX).optional(),
 
-    // Date range filters
     created_after: z.date().optional(),
     created_before: z.date().optional(),
     imported_after: z.date().optional(),
     imported_before: z.date().optional(),
 
-    // Geospatial filters
     near: z.object({
         latitude: z.number().min(GEO.LATITUDE_MIN).max(GEO.LATITUDE_MAX),
         longitude: z.number().min(GEO.LONGITUDE_MIN).max(GEO.LONGITUDE_MAX),
         radius_meters: z.number().positive(),
     }).optional(),
 
-    // Tag filtering
     tags: z.array(z.string()).optional(),
     tags_match: z.enum(['any', 'all']).optional(),
 
-    // Text search
     search: z.string().optional(),
 
-    // Pagination
     limit: z.number().int().positive().max(100).default(10),
     offset: z.number().int().nonnegative().default(0),
 
-    // Sorting
     sort_by: z.enum(['stamp_created', 'stamp_updated', 'stamp_imported', 'signal_title', 'signal_temperature']).optional(),
     sort_order: z.enum(['asc', 'desc']).default('desc'),
 })
 
-// Type exports
 export type SignalInput = z.infer<typeof signalSchema>
 export type CreateSignalInput = z.infer<typeof createSignalSchema>
 export type UpdateSignalInput = z.infer<typeof updateSignalSchema>

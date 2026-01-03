@@ -139,7 +139,11 @@ export default function SignalsPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_temperature</code>
-                            <span className="col-span-2 text-gray-700">Importance (-1.0 to 1.0)</span>
+                            <span className="col-span-2 text-gray-700">Importance (-1.0 to 1.0, default 0.0)</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <code className="text-blue-600">signal_status</code>
+                            <span className="col-span-2 text-gray-700">ACTIVE, PENDING, REJECTED, FAILED, or ARCHIVED</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_visibility</code>
@@ -151,11 +155,15 @@ export default function SignalsPage() {
                     <div className="space-y-3 text-sm">
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">stamp_created</code>
-                            <span className="col-span-2 text-gray-700">When the original content was captured</span>
+                            <span className="col-span-2 text-gray-700">When the original content was captured/created</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">stamp_imported</code>
-                            <span className="col-span-2 text-gray-700">When signal was created in the system</span>
+                            <span className="col-span-2 text-gray-700">When signal was ingested into the system</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <code className="text-blue-600">stamp_updated</code>
+                            <span className="col-span-2 text-gray-700">Last modification timestamp (auto-updated)</span>
                         </div>
                     </div>
 
@@ -163,7 +171,7 @@ export default function SignalsPage() {
                     <div className="space-y-3 text-sm">
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_location</code>
-                            <span className="col-span-2 text-gray-700">PostGIS Point (PostgreSQL)</span>
+                            <span className="col-span-2 text-gray-700">PostGIS Point (PostgreSQL) - GeoJSON format</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_latitude / signal_longitude</code>
@@ -171,23 +179,144 @@ export default function SignalsPage() {
                         </div>
                     </div>
 
-                    <h3 className="font-semibold text-gray-900 mb-3 mt-6">Metadata & Payload (Type-Specific)</h3>
-                    <div className="space-y-3 text-sm">
+                    <h3 className="font-semibold text-gray-900 mb-3 mt-6">Type-Specific Data</h3>
+                    <div className="space-y-3 text-sm mb-4">
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_metadata</code>
-                            <span className="col-span-2 text-gray-700">Technical metadata (EXIF data, duration, file size, etc.)</span>
+                            <span className="col-span-2 text-gray-700">Technical/immutable facts about the signal</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_payload</code>
-                            <span className="col-span-2 text-gray-700">Content data (file paths, text content, transcripts)</span>
+                            <span className="col-span-2 text-gray-700">The actual content data</span>
                         </div>
+                    </div>
+
+                    {/* DOCUMENT */}
+                    <details className="mb-4">
+                        <summary className="font-medium text-gray-900 cursor-pointer hover:text-blue-600">
+                            DOCUMENT - Metadata & Payload
+                        </summary>
+                        <div className="mt-3 pl-4 border-l-2 border-blue-200">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Metadata:</p>
+                            <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                                <li><code className="text-blue-600">word_count</code> - Number of words</li>
+                                <li><code className="text-blue-600">character_count</code> - Number of characters</li>
+                                <li><code className="text-blue-600">language</code> - Language code (e.g., 'en', 'es')</li>
+                                <li><code className="text-blue-600">file_extension</code> - File extension (e.g., '.md', '.txt')</li>
+                                <li><code className="text-blue-600">encoding</code> - Character encoding (e.g., 'utf-8')</li>
+                                <li><code className="text-blue-600">mime_type</code> - MIME type (e.g., 'text/plain')</li>
+                            </ul>
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Payload:</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                                <li><code className="text-blue-600">content</code> - The actual text content</li>
+                                <li><code className="text-blue-600">format</code> - Rendering format: 'plain', 'markdown', or 'html'</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    {/* PHOTO */}
+                    <details className="mb-4">
+                        <summary className="font-medium text-gray-900 cursor-pointer hover:text-blue-600">
+                            PHOTO - Metadata & Payload
+                        </summary>
+                        <div className="mt-3 pl-4 border-l-2 border-blue-200">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Metadata (EXIF & Properties):</p>
+                            <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                                <li><code className="text-blue-600">camera</code> - Camera model</li>
+                                <li><code className="text-blue-600">lens</code> - Lens information</li>
+                                <li><code className="text-blue-600">iso</code> - ISO sensitivity</li>
+                                <li><code className="text-blue-600">aperture</code> - Aperture value (e.g., 'f/1.5')</li>
+                                <li><code className="text-blue-600">shutter_speed</code> - Shutter speed (e.g., '1/120')</li>
+                                <li><code className="text-blue-600">focal_length</code> - Focal length in mm</li>
+                                <li><code className="text-blue-600">width</code> - Image width in pixels</li>
+                                <li><code className="text-blue-600">height</code> - Image height in pixels</li>
+                                <li><code className="text-blue-600">file_size</code> - File size in bytes</li>
+                                <li><code className="text-blue-600">mime_type</code> - MIME type (e.g., 'image/jpeg')</li>
+                                <li><code className="text-blue-600">color_space</code> - Color space (e.g., 'sRGB')</li>
+                                <li><code className="text-blue-600">timestamp_original</code> - Original capture timestamp from EXIF</li>
+                                <li><code className="text-blue-600">gps_altitude</code> - GPS altitude in meters</li>
+                            </ul>
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Payload:</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                                <li><code className="text-blue-600">file_path</code> - Local path or cloud storage URL</li>
+                                <li><code className="text-blue-600">thumbnail_path</code> - Optimized thumbnail path</li>
+                                <li><code className="text-blue-600">original_filename</code> - Original filename when uploaded</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    {/* TRANSMISSION */}
+                    <details className="mb-4">
+                        <summary className="font-medium text-gray-900 cursor-pointer hover:text-blue-600">
+                            TRANSMISSION - Metadata & Payload
+                        </summary>
+                        <div className="mt-3 pl-4 border-l-2 border-blue-200">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Metadata:</p>
+                            <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                                <li><code className="text-blue-600">source_type</code> - 'audio', 'video', or 'other'</li>
+                                <li><code className="text-blue-600">source_url</code> - YouTube URL, file path, etc.</li>
+                                <li><code className="text-blue-600">youtube_id</code> - YouTube video ID (if applicable)</li>
+                                <li><code className="text-blue-600">youtube_channel</code> - YouTube channel name</li>
+                                <li><code className="text-blue-600">youtube_published_at</code> - YouTube publish timestamp</li>
+                                <li><code className="text-blue-600">youtube_thumbnail</code> - YouTube thumbnail URL</li>
+                                <li><code className="text-blue-600">timestamps</code> - Array of topic markers: {`[{topic, timestamp}]`}</li>
+                                <li><code className="text-blue-600">duration</code> - Duration in seconds</li>
+                                <li><code className="text-blue-600">bitrate</code> - Bitrate in kbps</li>
+                                <li><code className="text-blue-600">sample_rate</code> - Sample rate in Hz</li>
+                                <li><code className="text-blue-600">channels</code> - Audio channels (1=mono, 2=stereo)</li>
+                                <li><code className="text-blue-600">codec</code> - Codec (e.g., 'h264', 'aac')</li>
+                                <li><code className="text-blue-600">file_size</code> - File size in bytes</li>
+                                <li><code className="text-blue-600">mime_type</code> - MIME type (e.g., 'video/mp4')</li>
+                                <li><code className="text-blue-600">width</code> - Video width in pixels</li>
+                                <li><code className="text-blue-600">height</code> - Video height in pixels</li>
+                                <li><code className="text-blue-600">framerate</code> - Framerate in fps</li>
+                                <li><code className="text-blue-600">has_transcript</code> - Boolean</li>
+                                <li><code className="text-blue-600">transcript_method</code> - 'ai', 'manual', or 'imported'</li>
+                            </ul>
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Payload:</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                                <li><code className="text-blue-600">file_path</code> - Local file or cloud storage URL</li>
+                                <li><code className="text-blue-600">transcript</code> - Plain text transcript</li>
+                                <li><code className="text-blue-600">timed_transcript</code> - Array of timestamped segments: {`[{text, start, end}]`}</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    {/* CONVERSATION */}
+                    <details className="mb-4">
+                        <summary className="font-medium text-gray-900 cursor-pointer hover:text-blue-600">
+                            CONVERSATION - Metadata & Payload
+                        </summary>
+                        <div className="mt-3 pl-4 border-l-2 border-blue-200">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Metadata:</p>
+                            <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                                <li><code className="text-blue-600">platform</code> - 'claude', 'chatgpt', 'gemini', 'remnant', or 'other'</li>
+                                <li><code className="text-blue-600">model</code> - Model identifier (e.g., 'claude-sonnet-4')</li>
+                                <li><code className="text-blue-600">message_count</code> - Total number of messages</li>
+                                <li><code className="text-blue-600">turn_count</code> - Number of back-and-forth exchanges</li>
+                                <li><code className="text-blue-600">duration_minutes</code> - Estimated conversation duration</li>
+                                <li><code className="text-blue-600">total_tokens</code> - Total token count (if available)</li>
+                                <li><code className="text-blue-600">started_at</code> - First message timestamp</li>
+                                <li><code className="text-blue-600">ended_at</code> - Last message timestamp</li>
+                            </ul>
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Payload:</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                                <li><code className="text-blue-600">messages</code> - Array of messages: {`[{role, content, timestamp, metadata}]`}</li>
+                                <li><code className="text-blue-600">summary</code> - AI-generated conversation summary</li>
+                                <li><code className="text-blue-600">key_points</code> - Array of extracted key insights</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <h3 className="font-semibold text-gray-900 mb-3 mt-6">Additional Fields</h3>
+                    <div className="space-y-3 text-sm">
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_tags</code>
                             <span className="col-span-2 text-gray-700">Array of tags (initially from synthesis)</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_embedding</code>
-                            <span className="col-span-2 text-gray-700">Vector embedding for semantic search</span>
+                            <span className="col-span-2 text-gray-700">Vector embedding (1536 dimensions) for semantic search</span>
                         </div>
                     </div>
 
@@ -195,11 +324,11 @@ export default function SignalsPage() {
                     <div className="space-y-3 text-sm">
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_history</code>
-                            <span className="col-span-2 text-gray-700">Audit trail of edits and changes</span>
+                            <span className="col-span-2 text-gray-700">Audit trail: {`[{timestamp, action, field, user_id}]`}</span>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <code className="text-blue-600">signal_annotations</code>
-                            <span className="col-span-2 text-gray-700">User notes and synthesis feedback</span>
+                            <span className="col-span-2 text-gray-700">User notes and synthesis feedback: {`{user_notes[], synthesis_feedback[]}`}</span>
                         </div>
                     </div>
                 </div>
