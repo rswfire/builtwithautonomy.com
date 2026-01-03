@@ -26,7 +26,7 @@ export function SiteNavigation() {
             try {
                 const response = await fetch('/api/admin/auth/check')
                 const data = await response.json()
-                setIsOwner(data.authenticated)  // ← Changed from role check
+                setIsOwner(data.authenticated)
             } catch {
                 setIsOwner(false)
             }
@@ -39,7 +39,46 @@ export function SiteNavigation() {
             title: 'Main',
             items: [
                 { name: 'Home', href: '/', icon: 'Home' },
-                { name: 'Admin', href: '/admin', icon: 'Compass' },
+                { name: 'Docs', href: '/docs', icon: 'BookOpen' },
+            ],
+        },
+    ]
+
+    const docsSections: NavSection[] = [
+        {
+            title: 'Getting Started',
+            items: [
+                { name: 'Quick Start', href: '/docs/getting-started', icon: 'Rocket' },
+            ],
+        },
+        {
+            title: 'Core Concepts',
+            items: [
+                { name: 'Signals', href: '/docs/concepts/signals', icon: 'Radio' },
+                { name: 'Realms', href: '/docs/concepts/realms', icon: 'Castle' },
+                { name: 'Clusters', href: '/docs/concepts/clusters', icon: 'Network' },
+                { name: 'Synthesis', href: '/docs/concepts/synthesis', icon: 'Sparkles' },
+            ],
+        },
+        {
+            title: 'Philosophy',
+            items: [
+                { name: 'Why Autonomy', href: '/docs/philosophy', icon: 'Lightbulb' },
+                { name: 'The Myth', href: '/docs/myth', icon: 'Scroll' },
+            ],
+        },
+        {
+            title: 'Architecture',
+            items: [
+                { name: 'Database Schema', href: '/docs/architecture/database-schema', icon: 'Database' },
+                { name: 'Multi-Tenancy', href: '/docs/architecture/multi-tenancy', icon: 'Users' },
+                { name: 'Authentication', href: '/docs/architecture/authentication', icon: 'Shield' },
+            ],
+        },
+        {
+            title: 'Deployment',
+            items: [
+                { name: 'Self-Hosting', href: '/docs/deployment/self-hosting', icon: 'Server' },
             ],
         },
     ]
@@ -55,17 +94,28 @@ export function SiteNavigation() {
         ],
     }
 
-    const sections = isOwner ? [...publicSections, adminSection] : publicSections
+    // Determine which sections to show
+    const isDocsPage = pathname.startsWith('/docs')
+
+    let sections: NavSection[]
+    if (isDocsPage) {
+        // Show docs navigation
+        sections = [...publicSections, ...docsSections]
+    } else if (isOwner) {
+        // Show admin navigation
+        sections = [...publicSections, adminSection]
+    } else {
+        // Show only public
+        sections = publicSections
+    }
 
     return (
-
         <aside className="w-64 bg-gray-900 text-gray-100 flex flex-col">
             <div className="flex flex-col items-center justify-center border-b border-gray-800 p-4">
                 <Icon name="SquareStack" size={24} className="text-teal-400" />
                 <Link href="/" className="font-mono text-lg font-semibold tracking-tight">
                     <span className="text-teal-400">autonomy</span>
                 </Link>
-
             </div>
 
             <nav className="flex-1 px-3 py-6 overflow-y-auto">
@@ -77,7 +127,7 @@ export function SiteNavigation() {
                         <div className="space-y-1">
                             {section.items.map((item) => {
                                 const isActive = pathname === item.href ||
-                                    (item.href !== '/' && pathname.startsWith(item.href))
+                                    (item.href !== '/' && item.href !== '/docs' && pathname.startsWith(item.href))
 
                                 return (
                                     <Link

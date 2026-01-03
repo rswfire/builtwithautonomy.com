@@ -99,7 +99,7 @@ export default function HomePage() {
                     View on GitHub
                 </a>
                 <Link
-                    href="/docs/readme"
+                    href="/docs/"
                     className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 font-medium text-center transition-colors"
                 >
                     Read the Docs
