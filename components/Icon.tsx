@@ -2,6 +2,8 @@
 import {
     ChevronRight,
     Compass,
+    Droplets,
+    Flame,
     HelpCircle,
     Home,
     LucideProps,
@@ -10,6 +12,7 @@ import {
     SquareActivity,
     SquareAsterisk,
     SquareCode,
+    SquareLibrary,
     SquareStack,
     SquareTerminal,
     SquareUserRound,
@@ -18,6 +21,8 @@ import {
 const iconMap = {
     ChevronRight,
     Compass,
+    Droplets,
+    Flame,
     HelpCircle,
     Home,
     Plus,
@@ -25,6 +30,7 @@ const iconMap = {
     SquareActivity,
     SquareAsterisk,
     SquareCode,
+    SquareLibrary,
     SquareStack,
     SquareTerminal,
     SquareUserRound,

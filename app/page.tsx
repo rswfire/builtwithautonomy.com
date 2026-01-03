@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from 'next/link'
+import Icon from "@/components/Icon";
 
 export default function HomePage() {
     return (
@@ -57,7 +58,7 @@ export default function HomePage() {
                 {/* Features Grid */}
                 <div className="grid md:grid-cols-3 gap-8 mb-16">
                     <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="text-3xl mb-4">📡</div>
+                        <div className="text-3xl mb-4"><Icon name="SquareActivity" size={30} className="text-teal-400" /></div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Signals</h3>
                         <p className="text-gray-600">
                             Atomic units of lived data. Photos, videos, audio, text, locations — timestamped and geolocated.
@@ -65,7 +66,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="text-3xl mb-4">🔮</div>
+                        <div className="text-3xl mb-4"><Icon name="SquareAsterisk" size={30} className="text-teal-400" /></div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Synthesis</h3>
                         <p className="text-gray-600">
                             AI-powered pattern detection across signals. Mirror, Myth, and Narrative reflections without reframing.
@@ -73,7 +74,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="text-3xl mb-4">🏰</div>
+                        <div className="text-3xl mb-4"><Icon name="SquareLibrary" size={30} className="text-teal-400" /></div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Realms</h3>
                         <p className="text-gray-600">
                             Sovereign territories for your signals. Private by default. You control visibility and access.
@@ -105,55 +106,6 @@ export default function HomePage() {
                 </Link>
             </div>
 
-            {/* Principles */}
-            <div className="max-w-3xl mx-auto">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                        Core Principles
-                    </h2>
-                    <ul className="space-y-3 text-gray-700">
-                        <li className="flex items-start">
-                            <span className="text-blue-600 mr-2">•</span>
-                            <span><strong>Reality has structure.</strong> Patterns are real and detectable.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-600 mr-2">•</span>
-                            <span><strong>Cognition has architecture.</strong> Coherent thinking follows traceable logic.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-600 mr-2">•</span>
-                            <span><strong>Systems can fragment or preserve.</strong> Most platforms fragment. Autonomy preserves.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-600 mr-2">•</span>
-                            <span><strong>Sovereignty matters.</strong> You should own your data, your patterns, your truth.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-600 mr-2">•</span>
-                            <span><strong>Epistemic honesty is non-negotiable.</strong> Systems that reframe your reality are abusive, even when they claim to help.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-16 pt-8 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
-                    <div>
-                        <p>Created by <a href="https://rswfire.com/handshake" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Robert Samuel White</a></p>
-                    </div>
-                    <div className="flex gap-6">
-                        <Link href="/docs/myth" className="hover:text-blue-600">Myth</Link>
-                        <Link href="/docs/roadmap" className="hover:text-blue-600">Roadmap</Link>
-                        <Link href="/docs/setup" className="hover:text-blue-600">Setup</Link>
-                        <a href="https://github.com/rswfire/builtwithautonomy.com" className="hover:text-blue-600" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    </div>
-                </div>
-                <div className="text-center mt-8 text-gray-500">
-                    <p className="text-xs">🔥🌊</p>
-                    <p className="text-sm mt-2">Built with Autonomy. Built for truth. Built to remain.</p>
-                </div>
-            </div>
         </div>
 </div>
 )
