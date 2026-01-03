@@ -1,6 +1,7 @@
 // components/admin/forms/SignalForm.tsx
 'use client'
 
+import React, { Fragment } from 'react'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, useEffect } from 'react'
@@ -15,26 +16,34 @@ import { JsonEditor } from './JsonEditor'
 import { Controller } from 'react-hook-form'
 import { SIGNAL_TYPES, SIGNAL_CONTEXT, SIGNAL_STATUS, SIGNAL_VISIBILITY, DEFAULTS } from '@/lib/constants'
 import type { Realm } from '@/lib/types'
+import { TagInput } from '../ui/TagInput'
 
 interface SignalFormProps {
     mode: 'create' | 'edit'
     defaultValues?: any
     onSuccess?: () => void
+    isPostgres: boolean
 }
 
-export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) {
+const SIGNAL_CONTEXT_DESCRIPTIONS = {
+    CAPTURE: 'Generic documentation, intent to be determined',
+    NOTE: 'Quick capture, ephemeral thought',
+    JOURNAL: 'Reflective writing, daily log',
+    CODE: 'Technical artifact, implementation',
+    REFERENCE: 'External source, citation',
+    OBSERVATION: 'Field note, documented reality',
+    ARTIFACT: 'Created work, finished piece',
+} as const
+
+const SIGNAL_TYPES_SORTED = [...SIGNAL_TYPES].sort()
+const SIGNAL_CONTEXT_SORTED = [...SIGNAL_CONTEXT].sort()
+
+export function SignalForm({ mode, defaultValues, onSuccess, isPostgres }: SignalFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [realms, setRealms] = useState<Realm[]>([])
     const [loadingRealms, setLoadingRealms] = useState(true)
-
-    // Determine database type from defaultValues
-    const usePostgres = useMemo(() => {
-        if (defaultValues?.signal_location !== undefined) return true
-        if (defaultValues?.signal_latitude !== undefined || defaultValues?.signal_longitude !== undefined) return false
-        return typeof window !== 'undefined' ? false : process.env.NEXT_PUBLIC_USE_POSTGRES === 'true'
-    }, [defaultValues])
 
     const formDefaults = defaultValues ? {
         ...defaultValues,
@@ -55,9 +64,15 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
         defaultValues: formDefaults,
     })
 
+    const [latitude, setLatitude] = useState<string>(
+        defaultValues?.signal_location?.coordinates?.[1]?.toString() || ''
+    )
+    const [longitude, setLongitude] = useState<string>(
+        defaultValues?.signal_location?.coordinates?.[0]?.toString() || ''
+    )
+
     const signalType = watch('signal_type')
 
-    // Load user's realms
     useEffect(() => {
         async function loadRealms() {
             try {
@@ -86,7 +101,22 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
         try {
             const processedData = { ...data }
 
-                // Parse JSON fields
+            // Convert lat/lng to appropriate format
+            if (latitude && longitude) {
+                if (isPostgres) {
+                    processedData.signal_location = {
+                        type: 'Point',
+                        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+                    }
+                } else {
+                    processedData.signal_latitude = parseFloat(latitude)
+                    processedData.signal_longitude = parseFloat(longitude)
+                }
+            }
+
+            delete processedData.latitude
+            delete processedData.longitude
+
             ;['signal_metadata', 'signal_payload', 'signal_tags', 'signal_location'].forEach(field => {
                 if (processedData[field] && typeof processedData[field] === 'string') {
                     try {
@@ -174,17 +204,23 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
                         <FormField label="Type" name="signal_type" required error={errors.signal_type?.message as string}>
                             <Select {...register('signal_type', { required: 'Type is required' })}>
                                 <option value="">Select Type</option>
-                                {SIGNAL_TYPES.map(type => (
+                                {SIGNAL_TYPES_SORTED.map(type => (
                                     <option key={type} value={type}>{type}</option>
                                 ))}
                             </Select>
                         </FormField>
 
-                        <FormField label="Context" name="signal_context" error={errors.signal_context?.message as string}>
-                            <Select {...register('signal_context')}>
-                                <option value="">Select Context (Optional)</option>
-                                {SIGNAL_CONTEXT.map(ctx => (
-                                    <option key={ctx} value={ctx}>{ctx}</option>
+                        <FormField label="Context" name="signal_context" required error={errors.signal_context?.message as string}>
+                            <Select {...register('signal_context', { required: 'Context is required' })}>
+                                {SIGNAL_CONTEXT_SORTED.map(ctx => (
+                                    <React.Fragment key={ctx}>
+                                        <option value={ctx} className="font-semibold py-2">
+                                            {ctx}
+                                        </option>
+                                        <option disabled className="text-gray-500 text-sm italic pl-4 py-1">
+                                            {SIGNAL_CONTEXT_DESCRIPTIONS[ctx]}
+                                        </option>
+                                    </React.Fragment>
                                 ))}
                             </Select>
                         </FormField>
@@ -205,6 +241,23 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
                         />
                     </FormField>
 
+                    <FormField
+                        label="Tags"
+                        name="signal_tags"
+                        description="Keywords for categorization and search"
+                    >
+                        <Controller
+                            name="signal_tags"
+                            control={control}
+                            render={({ field }) => (
+                                <TagInput
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
+                    </FormField>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField label="Author" name="signal_author" required error={errors.signal_author?.message as string}>
                             <Input
@@ -218,56 +271,45 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
                             name="signal_temperature"
                             description="Importance: -1.0 (low) to 1.0 (critical)"
                         >
-                            <Input
-                                type="number"
-                                step="0.1"
-                                min="-1.0"
-                                max="1.0"
-                                {...register('signal_temperature', { valueAsNumber: true })}
-                                placeholder="0.0"
-                            />
+                            <div className="flex items-center gap-4">
+                                <input
+                                    type="range"
+                                    min="-1.0"
+                                    max="1.0"
+                                    step="0.1"
+                                    {...register('signal_temperature', { valueAsNumber: true })}
+                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                />
+                                <span className="text-sm font-mono text-gray-700 min-w-[3rem] text-right">
+            {watch('signal_temperature')?.toFixed(1) ?? '0.0'}
+        </span>
+                            </div>
                         </FormField>
                     </div>
                 </FormSection>
 
                 <FormSection title="Location" description="Geospatial coordinates (optional)">
-                    {usePostgres ? (
-                        <FormField label="Location (GeoJSON)" name="signal_location">
-                            <Controller
-                                name="signal_location"
-                                control={control}
-                                render={({ field }) => (
-                                    <JsonEditor
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        onBlur={field.onBlur}
-                                        rows={3}
-                                        placeholder='{"type": "Point", "coordinates": [-124.0631, 43.8041]}'
-                                    />
-                                )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField label="Latitude" name="latitude">
+                            <Input
+                                type="number"
+                                step="any"
+                                value={latitude}
+                                onChange={(e) => setLatitude(e.target.value)}
+                                placeholder="e.g., 43.8041"
                             />
                         </FormField>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField label="Latitude" name="signal_latitude">
-                                <Input
-                                    type="number"
-                                    step="any"
-                                    {...register('signal_latitude')}
-                                    placeholder="e.g., 43.8041"
-                                />
-                            </FormField>
 
-                            <FormField label="Longitude" name="signal_longitude">
-                                <Input
-                                    type="number"
-                                    step="any"
-                                    {...register('signal_longitude')}
-                                    placeholder="e.g., -124.0631"
-                                />
-                            </FormField>
-                        </div>
-                    )}
+                        <FormField label="Longitude" name="longitude">
+                            <Input
+                                type="number"
+                                step="any"
+                                value={longitude}
+                                onChange={(e) => setLongitude(e.target.value)}
+                                placeholder="e.g., -124.0631"
+                            />
+                        </FormField>
+                    </div>
                 </FormSection>
 
                 <FormSection title="Metadata" description="Status and visibility settings">
@@ -290,8 +332,12 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
                             </Select>
                         </FormField>
 
-                        <FormField label="Import Date" name="stamp_imported">
-                            <Input type="datetime-local" {...register('stamp_imported')} />
+                        <FormField
+                            label="Created Date"
+                            name="stamp_created"
+                            description="When the signal was originally created/captured"
+                        >
+                            <Input type="datetime-local" {...register('stamp_created')} />
                         </FormField>
                     </div>
                 </FormSection>
@@ -340,25 +386,6 @@ export function SignalForm({ mode, defaultValues, onSuccess }: SignalFormProps) 
                         />
                     </FormField>
 
-                    <FormField
-                        label="Tags (JSON)"
-                        name="signal_tags"
-                        description="Array of tags (initially from synthesis)"
-                    >
-                        <Controller
-                            name="signal_tags"
-                            control={control}
-                            render={({ field }) => (
-                                <JsonEditor
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                    rows={4}
-                                    placeholder='["tag1", "tag2"]'
-                                />
-                            )}
-                        />
-                    </FormField>
                 </FormSection>
 
                 <div className="flex gap-3 pt-8 border-t border-gray-200">

@@ -1,10 +1,10 @@
-# Autonomy System State - January 2, 2026
+# Autonomy System State - January 3, 2026
 
 ## Built With Autonomy
 
 **Cognitive infrastructure for signal documentation, pattern recognition, and epistemic fidelity.**
 
-Autonomy is an open-source platform for capturing, processing, and synthesizing lived experience into coherent knowledge structures. It treats life as a continuous stream of signals — photos, videos, audio, text, locations — and uses AI-powered metadata extraction to identify patterns and preserve truth without distortion.
+Autonomy is an open-source platform for capturing, processing, and synthesizing lived experience into coherent knowledge structures. It treats life as a continuous stream of signals — photos, videos, audio, text, conversations — and uses AI-powered metadata extraction to identify patterns and preserve truth without distortion.
 
 **Core principle:** Your reality should not be reframed, filtered, or flattened by systems that claim to help you.  
 Autonomy maintains epistemic fidelity — what you document is what the system reflects, without protective overlays or institutional sanitization.
@@ -33,6 +33,7 @@ app/
     layout.tsx                  # Passthrough (dynamic export)
     page.tsx                    # Admin dashboard
     login/page.tsx              # Login page
+    logout/page.tsx             # Logout handler
     signals/
       page.tsx                  # List view
       new/page.tsx              # Create form
@@ -49,73 +50,122 @@ app/
       page.tsx                  # List view
       new/page.tsx              # Create form
       [id]/page.tsx             # Edit form
-  api/admin
+    realms/
+      page.tsx                  # List view
+      new/page.tsx              # Create form
+      [id]/page.tsx             # Edit form
+  api/admin/
     auth/
-      check/route.ts              # GET user role
-      login/route.ts              # POST authentication
-      logout/route.ts             # POST logout
+      check/route.ts            # GET user role
+      login/route.ts            # POST authentication
+      logout/route.ts           # POST logout
     signals/
-      route.ts                    # GET list, POST create
-      [id]/route.ts               # GET, PATCH, DELETE
+      route.ts                  # GET list, POST create
+      [id]/route.ts             # GET, PATCH, DELETE
     clusters/
-      route.ts                    # GET list, POST create
-      [id]/route.ts               # GET, PATCH, DELETE
+      route.ts                  # GET list, POST create
+      [id]/route.ts             # GET, PATCH, DELETE
     synthesis/
-      route.ts                    # GET list, POST create
-      [id]/route.ts               # GET, PATCH, DELETE
+      route.ts                  # GET list, POST create
+      [id]/route.ts             # GET, PATCH, DELETE
     users/
-      route.ts                    # GET list, POST create
-      [id]/route.ts               # GET, PATCH, DELETE
+      route.ts                  # GET list, POST create
+      [id]/route.ts             # GET, PATCH, DELETE
+    realms/
+      route.ts                  # GET list, POST create
+      [id]/route.ts             # GET, PATCH, DELETE
 
 components/
   Icon.tsx                      # Lucide icon wrapper with whitelist
   SiteNavigation.tsx            # Unified sidebar (public + admin)
   admin/
-    form-types.ts               # FieldConfig, ModelConfig interfaces
-    schema-to-form.ts           # Zod introspection for form generation
-    form-config.ts              # Generated form configs (minimal, may be deprecated)
-    debug-schema.ts             # Debug utility for schema inspection        
     forms/
-      SignalForm.tsx            # Signal-specific form
+      SignalForm.tsx            # Signal-specific form with type/context
       ClusterForm.tsx           # Cluster-specific form
       SynthesisForm.tsx         # Synthesis-specific form
       UserForm.tsx              # User-specific form
+      RealmForm.tsx             # Realm-specific form
       FormSection.tsx           # Reusable section wrapper
-      FormField.tsx             # Reusable field wrapper
+      FormField.tsx             # Reusable field wrapper with description support
+      TagInput.tsx              # Tag management component
       JsonEditor.tsx            # JSON textarea with validation
 
 lib/
-  constants.ts                  # SIGNAL_TYPES, CLUSTER_TYPES, etc.
-  types.ts                      # TypeScript interfaces, isPostgres flag
+  constant/                     # Modular constants by domain
+    index.ts                    # Re-exports all constants
+    signal.ts                   # SIGNAL_TYPES, SIGNAL_CONTEXT, SIGNAL_STATUS, SIGNAL_VISIBILITY
+    cluster.ts                  # CLUSTER_TYPES, CLUSTER_STATES
+    synthesis.ts                # SYNTHESIS_TYPES, SYNTHESIS_SUBTYPES, POLYMORPHIC_TYPES
+    realm.ts                    # REALM_TYPES, REALM_USER_ROLES
+    user.ts                     # USER_ROLES, ROLE_PERMISSIONS
+    common.ts                   # DEFAULTS, LIMITS, GEO
+  type/                         # Modular types by domain
+    index.ts                    # Re-exports all types
+    signal.ts                   # Signal types and type-specific schemas
+    cluster.ts                  # Cluster types
+    synthesis.ts                # Synthesis types and content schemas
+    realm.ts                    # Realm types
+    user.ts                     # User types
+    common.ts                   # Coordinates, GeographyPoint, isPostgres
+    auth.ts                     # AuthPayload
   db.ts                         # Prisma client singleton
   queries/
-    signal.ts                   # Signal CRUD (querySignals, createSignal, etc.)
+    signal.ts                   # Signal CRUD (realm-scoped)
     cluster.ts                  # Cluster CRUD + hierarchy queries
     synthesis.ts                # Synthesis CRUD + polymorphic queries
-    user.ts                     # User CRUD + auth (renamed from users.ts)
+    user.ts                     # User CRUD + auth
+    realm.ts                    # Realm CRUD + membership
   validation/
-    signal.ts                   # Zod schemas for signals
+    signal.ts                   # Zod schemas for signals + type-specific payloads
     cluster.ts                  # Zod schemas for clusters
     synthesis.ts                # Zod schemas for synthesis (discriminated union)
     user.ts                     # Zod schemas for users
+    realm.ts                    # Zod schemas for realms
   utils/
-    auth.ts                     # requireAuth, verifyToken
+    auth.ts                     # requireAuthAPI, verifyToken
     password.ts                 # hashPassword, verifyPassword (bcrypt)
     permissions.ts              # requireOwner, requireSanctum
     ulid.ts                     # ULID generation
+
+middleware.ts                   # Auth protection for /admin routes
 ```
 
 ### Data Models
+
+#### Realm
+```typescript
+{
+  realm_id: ULID (PK)
+  realm_name: string
+  realm_type: ENUM (PRIVATE, PUBLIC, SHARED)
+  realm_description?: string
+  user_id: ULID (FK to users - owner)
+  
+  stamp_created: timestamp
+  stamp_updated?: timestamp
+  
+  // Relations
+  signals: Signal[]
+  clusters: Cluster[]
+  synthesis: Synthesis[]
+  members: RealmUser[] (many-to-many)
+}
+```
 
 #### Signal
 ```typescript
 {
   signal_id: ULID (PK)
-  signal_type: ENUM (TEXT, PHOTO, VIDEO, AUDIO, LOCATION, DOCUMENT, CODE, LINK, NOTE, JOURNAL, OBSERVATION)
+  realm_id: ULID (FK to realms)
+  
+  signal_type: ENUM (DOCUMENT, PHOTO, TRANSMISSION, CONVERSATION)
+  signal_context?: ENUM (CAPTURE, NOTE, JOURNAL, CODE, REFERENCE, OBSERVATION, ARTIFACT)
   signal_title: string
   signal_description?: string
   signal_author: string
-  signal_status: ENUM (PENDING, PROCESSING, ACTIVE, ARCHIVED)
+  signal_temperature?: decimal (-1.0 to 1.0, default 0.0)
+  
+  signal_status: ENUM (ACTIVE, PENDING, REJECTED, FAILED, ARCHIVED)
   signal_visibility: ENUM (PUBLIC, PRIVATE, SANCTUM, SHARED)
   
   // Location - database-specific
@@ -123,15 +173,18 @@ lib/
   signal_latitude?: decimal (MySQL)
   signal_longitude?: decimal (MySQL)
   
-  // JSON payloads - type-specific schemas needed
+  // JSON payloads - type-specific schemas
   signal_metadata?: JSON
   signal_payload?: JSON
   signal_tags?: JSON (array)
+  signal_history?: JSON (audit trail)
+  signal_annotations?: JSON (user notes, synthesis feedback)
   
   signal_embedding?: array[1536] (for vector search)
+  
   stamp_created: timestamp
   stamp_updated?: timestamp
-  stamp_imported?: timestamp
+  stamp_imported?: timestamp (when original content was captured)
 }
 ```
 
@@ -139,10 +192,12 @@ lib/
 ```typescript
 {
   cluster_id: ULID (PK)
-  cluster_type: ENUM (TEMPORAL, SPATIAL, THEMATIC, NARRATIVE, NETWORK, HYBRID, META)
+  realm_id: ULID (FK to realms)
+  
+  cluster_type: ENUM (TEMPORAL, SPATIAL, THEMATIC, PROJECT, JOURNEY, EXPLORATION, COLLECTION)
   cluster_title: string
   cluster_depth: int (hierarchy level)
-  cluster_state: ENUM (DRAFT, ACTIVE, PUBLISHED, ARCHIVED)
+  cluster_state: ENUM (ACTIVE, ARCHIVED, DRAFT, PUBLISHED)
   
   cluster_annotations?: JSON
   cluster_metadata?: JSON
@@ -168,6 +223,8 @@ lib/
 ```typescript
 {
   synthesis_id: ULID (PK)
+  realm_id: ULID (FK to realms)
+  
   synthesis_type: ENUM (METADATA, REFLECTION)
   synthesis_subtype: string (type-dependent)
     // METADATA: SURFACE, STRUCTURE, PATTERNS
@@ -181,7 +238,7 @@ lib/
   
   synthesis_annotations?: JSON
   synthesis_content?: JSON (type+subtype specific schema)
-  synthesis_history?: JSON (array of actions)
+  synthesis_history?: JSON (processing pipeline audit trail)
   synthesis_errors?: JSON (array of errors)
   
   synthesis_embedding?: array[1536]
@@ -210,28 +267,45 @@ lib/
 
 ## Key Design Patterns
 
+### Realm Architecture
+- Every signal, cluster, and synthesis belongs to a realm
+- Users can be members of multiple realms (via RealmUser pivot table)
+- Realm types: PRIVATE (single user), PUBLIC (discoverable), SHARED (collaborative)
+- All queries are realm-scoped for data isolation
+
 ### Authentication Flow
 1. User posts credentials to `/api/admin/auth/login`
 2. Server validates, creates JWT with `{ user_id, email, role }`
-3. JWT stored in httpOnly cookie
-4. Protected routes call `requireAuth()` which verifies token
-5. Role-based permissions via `requireOwner()` / `requireSanctum()`
+3. JWT stored in httpOnly cookie as `auth_token`
+4. Middleware protects `/admin/*` routes (except `/admin/login`)
+5. Protected API routes call `requireAuthAPI()` which verifies token
+6. Role-based permissions via `requireOwner()` / `requireSanctum()`
 
 ### Form Architecture
-- **Model-specific forms** (SignalForm, ClusterForm, etc.) - NOT generic DynamicModelForm
+- **Model-specific forms** (SignalForm, ClusterForm, RealmForm, etc.)
 - Each form handles its own validation, JSON parsing, submission
-- Forms use React Hook Form + Controller for JSON fields
-- JSON fields pre-stringify in `formDefaults` to avoid hydration errors
-- Database type detection via data structure (not isPostgres constant) to avoid SSR/client mismatch
+- Forms use React Hook Form + Controller for complex fields
+- Type-specific UI (signal_type determines which fields show)
+- Context descriptions shown inline in dropdowns
+- TagInput component for tag management (Enter/Space to add)
+- Temperature slider with live value display
+- Database type (Postgres vs MySQL) passed as prop from server component
 
-### Schema Introspection
-- `schema-to-form.ts` reads Zod schemas via `field.constructor.name`
-- Detects field types: ZodEnum → select, ZodRecord/ZodArray → json, etc.
-- Unwraps ZodOptional/ZodDefault/ZodNullable to get base type
-- **Limitation:** Discriminated unions (synthesis) require manual config
+### Signal Type & Context System
+- **Type** = medium (DOCUMENT, PHOTO, TRANSMISSION, CONVERSATION)
+- **Context** = intent (CAPTURE, NOTE, JOURNAL, CODE, REFERENCE, OBSERVATION, ARTIFACT)
+- Context is required, defaults to CAPTURE
+- Type-specific payload schemas defined but forms use JSON editors for now
+
+### History & Annotations
+- `signal_history`: Auto-appended audit trail of all changes
+- `signal_annotations`: User notes and synthesis feedback
+- Displayed in edit forms (read-only history, add new annotations)
+- Same pattern applies to synthesis for processing pipeline tracking
 
 ### Query Patterns
 - All queries in `lib/queries/*` use Prisma
+- Queries filter by user's accessible realms
 - Filters use `Partial<FilterType>` to make all fields optional
 - Role-based filtering in queries (e.g., non-owners see limited data)
 - Polymorphic relations (synthesis → signal/cluster) handled manually
@@ -256,14 +330,19 @@ NODE_ENV="production"
 
 ## Constants Reference
 
-### Signal Types
+### Signal Types (Medium)
 ```typescript
-SIGNAL_TYPES = ['TEXT', 'PHOTO', 'VIDEO', 'AUDIO', 'LOCATION', 'DOCUMENT', 'CODE', 'LINK', 'NOTE', 'JOURNAL', 'OBSERVATION']
+SIGNAL_TYPES = ['DOCUMENT', 'PHOTO', 'TRANSMISSION', 'CONVERSATION']
+```
+
+### Signal Context (Intent)
+```typescript
+SIGNAL_CONTEXT = ['CAPTURE', 'NOTE', 'JOURNAL', 'CODE', 'REFERENCE', 'OBSERVATION', 'ARTIFACT']
 ```
 
 ### Signal Status
 ```typescript
-SIGNAL_STATUS = ['PENDING', 'PROCESSING', 'ACTIVE', 'ARCHIVED']
+SIGNAL_STATUS = ['ACTIVE', 'PENDING', 'REJECTED', 'FAILED', 'ARCHIVED']
 ```
 
 ### Signal Visibility
@@ -273,12 +352,12 @@ SIGNAL_VISIBILITY = ['PUBLIC', 'PRIVATE', 'SANCTUM', 'SHARED']
 
 ### Cluster Types
 ```typescript
-CLUSTER_TYPES = ['TEMPORAL', 'SPATIAL', 'THEMATIC', 'NARRATIVE', 'NETWORK', 'HYBRID', 'META']
+CLUSTER_TYPES = ['TEMPORAL', 'SPATIAL', 'THEMATIC', 'PROJECT', 'JOURNEY', 'EXPLORATION', 'COLLECTION']
 ```
 
 ### Cluster States
 ```typescript
-CLUSTER_STATES = ['DRAFT', 'ACTIVE', 'PUBLISHED', 'ARCHIVED']
+CLUSTER_STATES = ['ACTIVE', 'ARCHIVED', 'DRAFT', 'PUBLISHED']
 ```
 
 ### Synthesis Types & Subtypes
@@ -291,9 +370,9 @@ SYNTHESIS_SUBTYPES = {
 }
 ```
 
-### Polymorphic Types
+### Realm Types
 ```typescript
-POLYMORPHIC_TYPES = ['Signal', 'Cluster']
+REALM_TYPES = ['PRIVATE', 'PUBLIC', 'SHARED']
 ```
 
 ### User Roles
@@ -312,46 +391,54 @@ USER_ROLES = ['OWNER', 'SANCTUM', 'GUEST']
 - [x] Database schema with Prisma ORM
 - [x] **Realm architecture (PRIVATE/PUBLIC/SHARED)**
 - [x] **Multi-tenant data isolation**
+- [x] **Realm membership system**
 - [x] CRUD operations with auth
 - [x] Role-based access control
 - [x] ULID-based ID generation
 - [x] Password hashing and validation
-- [x] Geospatial and embedding support
+- [x] Geospatial support (Postgres PostGIS + MySQL lat/lng)
+- [x] Embedding support (vector fields for semantic search)
 
 ---
 
-## 🔄 PHASE 2: API & AUTHENTICATION - **80% COMPLETE**
+## ✅ PHASE 2: API & AUTHENTICATION - **COMPLETE**
 
 - [x] JWT/session-based authentication middleware
 - [x] **Typed auth payloads (AuthPayload)**
 - [x] **Login/logout with proper cookie handling**
-- [x] **Redirect to login for unauthenticated users**
-- [ ] REST/GraphQL API routes (partial - basic CRUD done)
-- [ ] Rate limiting and request validation
-- [ ] API documentation (OpenAPI/Swagger)
-- [ ] WebSocket support for real-time updates
+- [x] **Middleware protection for admin routes**
+- [x] REST API routes (full CRUD for all models)
+- [x] Realm-scoped queries
+- [x] Query parameter support (filters, pagination, sorting)
 
 ---
 
-## 🔄 PHASE 3: FRONTEND & USER EXPERIENCE - **60% COMPLETE**
+## 🔄 PHASE 3: FRONTEND & USER EXPERIENCE - **85% COMPLETE**
 
 - [x] Frontend UI components (React/Next.js)
-- [x] Signal creation and editing interfaces
-- [x] Cluster management interfaces
-- [x] Synthesis creation interfaces
+- [ ] Signal creation and editing interfaces
+- [ ] Cluster management interfaces
+- [ ] Synthesis creation interfaces
+- [ ] **Realm CRUD interfaces**
+- [x] **User management interfaces**
 - [x] **Realm selector in forms**
 - [x] **Settings page**
-- [ ] File upload for photos/videos/audio ← **NEXT BIG FEATURE**
+- [x] **Type/context-aware signal forms**
+- [x] **Tag input component (Enter/Space to add)**
+- [x] **Temperature slider with live display**
+- [x] **Unified lat/lng input (converts to DB format)**
+- [x] **History and annotations display in edit forms**
+- [x] **Context descriptions in dropdowns**
+- [ ] File upload for photos/videos/audio
 - [ ] Interactive maps for geospatial signals
 - [ ] Advanced search and filter interfaces
 - [ ] Timeline/calendar visualizations
 - [ ] Mobile-responsive design (partial)
 - [ ] Progressive Web App (PWA) support
-- [ ] Native mobile app (iOS/Android)
 
 ---
 
-## 🔜 PHASE 4: AI & SYNTHESIS - **NOT STARTED**
+## 🔜 PHASE 4: AI & SYNTHESIS - **READY TO BUILD**
 
 - [ ] Real-time synthesis generation
 - [ ] Open-source AI reflection pipeline
@@ -360,19 +447,19 @@ USER_ROLES = ['OWNER', 'SANCTUM', 'GUEST']
 - [ ] Pattern detection across signals
 - [ ] Clustering algorithms (temporal, spatial, thematic)
 - [ ] Automated tagging and metadata extraction
+- [ ] Type-specific payload processing (DOCUMENT, PHOTO, TRANSMISSION, CONVERSATION)
 - [ ] **Remnant**: AI field companion trained on Autonomy data
 
 ---
 
-## 🔜 PHASE 5: CIRCLES & COLLABORATION - **ARCHITECTURE READY**
+## 🔜 PHASE 5: CIRCLES & COLLABORATION - **ARCHITECTURE COMPLETE**
 
 - [x] **Realm architecture supports this (SHARED type)**
-- [ ] Shared realms with multiple members
+- [x] **Realm membership with roles (OWNER/CONTRIBUTOR/OBSERVER)**
+- [ ] Shared realm workflows
 - [ ] Consent-based collective synthesis
 - [ ] Signal opt-in to shared realms
-- [ ] Granular permissions (OWNER/CONTRIBUTOR/OBSERVER)
 - [ ] Collaborative editing
-- [ ] Comments and annotations
 - [ ] Real-time updates across realm members
 
 ---
@@ -385,6 +472,7 @@ USER_ROLES = ['OWNER', 'SANCTUM', 'GUEST']
 - [ ] Backup and restore utilities
 - [ ] Data migration tools (from other platforms)
 - [ ] Analytics and insights dashboard
+- [ ] Type-specific field builders (replace JSON editors)
 
 ---
 
@@ -396,6 +484,7 @@ USER_ROLES = ['OWNER', 'SANCTUM', 'GUEST']
 - [ ] Browser extensions for signal capture
 - [ ] Integration with mapping services
 - [ ] Offline-first capabilities with sync
+- [ ] Mobile apps (iOS/Android)
 
 ---
 

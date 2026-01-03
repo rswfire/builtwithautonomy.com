@@ -22,11 +22,11 @@ export const SIGNAL_CONTEXT = [
 export type SignalContext = typeof SIGNAL_CONTEXT[number]
 
 export const SIGNAL_STATUS = [
-    'PENDING',
-    'PROCESSING',
-    'PROCESSED',
-    'FAILED',
+    'ACTIVE',
     'ARCHIVED',
+    'FAILED',
+    'PENDING',
+    'REJECTED',
 ] as const
 
 export type SignalStatus = typeof SIGNAL_STATUS[number]

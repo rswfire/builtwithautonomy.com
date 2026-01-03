@@ -30,6 +30,7 @@ import {
     SquareUserRound,
     TreeDeciduous,
     Users,
+    X
 } from 'lucide-react';
 
 const iconMap = {
@@ -62,6 +63,7 @@ const iconMap = {
     SquareUserRound,
     TreeDeciduous,
     Users,
+    X,
 } as const;
 
 export type IconName = keyof typeof iconMap;
