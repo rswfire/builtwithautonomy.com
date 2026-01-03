@@ -1,3 +1,8 @@
+import { SignJWT } from 'jose'
+import { NextRequest, NextResponse } from 'next/server'
+import { authenticateUser } from '@/lib/queries/user'
+import type { AuthPayload } from '@/lib/types/auth'
+
 export async function POST(request: NextRequest) {
     console.log('🔐 Login attempt started')
 
