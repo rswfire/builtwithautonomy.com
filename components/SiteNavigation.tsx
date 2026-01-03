@@ -58,12 +58,14 @@ export function SiteNavigation() {
     const sections = isOwner ? [...publicSections, adminSection] : publicSections
 
     return (
+
         <aside className="w-64 bg-gray-900 text-gray-100 flex flex-col">
-            <div className="h-16 flex items-center px-6 border-b border-gray-800">
-                <Icon name="SquareStack" size={20} className="text-teal-400" />
-                <Link href="/" className="ml-2 font-mono text-lg font-semibold tracking-tight">
+            <div className="flex flex-col items-center justify-center border-b border-gray-800 p-4">
+                <Icon name="SquareStack" size={24} className="text-teal-400" />
+                <Link href="/" className="font-mono text-lg font-semibold tracking-tight">
                     <span className="text-teal-400">autonomy</span>
                 </Link>
+
             </div>
 
             <nav className="flex-1 px-3 py-6 overflow-y-auto">
