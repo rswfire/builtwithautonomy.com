@@ -47,10 +47,9 @@ export function SiteNavigation() {
     const adminSection: NavSection = {
         title: 'Admin',
         items: [
-            { name: 'Dashboard', href: '/admin', icon: 'BarChart3' },
-            { name: 'Signals', href: '/admin/signals', icon: 'Radio' },
-            { name: 'Clusters', href: '/admin/clusters', icon: 'FolderOpen' },
-            { name: 'Synthesis', href: '/admin/synthesis', icon: 'Sparkles' },
+            { name: 'Signals', href: '/admin/signals', icon: 'SquareActivity' },
+            { name: 'Clusters', href: '/admin/clusters', icon: 'SquareCode' },
+            { name: 'Synthesis', href: '/admin/synthesis', icon: 'FlaskConical' },
             { name: 'Users', href: '/admin/users', icon: 'Users' },
             { name: 'Settings', href: '/admin/settings', icon: 'Settings' },
         ],
