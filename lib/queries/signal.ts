@@ -776,16 +776,20 @@ export async function getFeaturedSignals(
         return []
     }
 
-    return await prisma.signal.findMany({
+    // Get all public signals and filter in JS since JSONB boolean queries are unreliable
+    const signals = await prisma.signal.findMany({
         where: {
             realm_id: realm.realm_id,
             signal_visibility: 'PUBLIC',
-            signal_metadata: {
-                path: ['presentation', 'featured'],
-                equals: true,
-            },
         },
         orderBy: { stamp_created: 'desc' },
-        take: options?.limit ?? 24,
     })
+
+    // Filter for featured in JavaScript
+    const featured = signals.filter(signal => {
+        const metadata = signal.signal_metadata as any
+        return metadata?.presentation?.featured === true
+    })
+
+    return featured.slice(0, options?.limit ?? 24)
 }
