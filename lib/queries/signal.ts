@@ -687,19 +687,28 @@ export async function getSignalByPresentationSlug(
 }
 
 /**
- * Get signals by presentation category within a realm
+ * Get signals by presentation category within a realm (by realm slug)
  */
 export async function getSignalsByPresentationCategory(
-    realmId: string,
+    realmSlug: string,
     category: string,
     options?: {
         limit?: number
         offset?: number
     }
 ): Promise<Signal[]> {
+    const realm = await prisma.realm.findUnique({
+        where: { realm_slug: realmSlug },
+    })
+
+    if (!realm) {
+        return []
+    }
+
     return await prisma.signal.findMany({
         where: {
-            realm_id: realmId,
+            realm_id: realm.realm_id,
+            signal_visibility: 'PUBLIC',
             signal_metadata: {
                 path: ['presentation', 'category'],
                 equals: category,
@@ -712,14 +721,23 @@ export async function getSignalsByPresentationCategory(
 }
 
 /**
- * Get all presentation categories in a realm
+ * Get all presentation categories in a realm (by realm slug)
  */
 export async function getPresentationCategories(
-    realmId: string
+    realmSlug: string
 ): Promise<string[]> {
+    const realm = await prisma.realm.findUnique({
+        where: { realm_slug: realmSlug },
+    })
+
+    if (!realm) {
+        return []
+    }
+
     const signals = await prisma.signal.findMany({
         where: {
-            realm_id: realmId,
+            realm_id: realm.realm_id,
+            signal_visibility: 'PUBLIC',
             signal_metadata: {
                 path: ['presentation', 'category'],
                 not: Prisma.AnyNull,
@@ -742,23 +760,32 @@ export async function getPresentationCategories(
 }
 
 /**
- * Get featured signals in a realm
+ * Get featured signals by realm slug
  */
 export async function getFeaturedSignals(
-    realmId: string,
+    realmSlug: string,
     options?: {
         limit?: number
     }
 ): Promise<Signal[]> {
+    const realm = await prisma.realm.findUnique({
+        where: { realm_slug: realmSlug },
+    })
+
+    if (!realm) {
+        return []
+    }
+
     return await prisma.signal.findMany({
         where: {
-            realm_id: realmId,
+            realm_id: realm.realm_id,
+            signal_visibility: 'PUBLIC',
             signal_metadata: {
                 path: ['presentation', 'featured'],
                 equals: true,
             },
         },
         orderBy: { stamp_created: 'desc' },
-        take: options?.limit ?? 10,
+        take: options?.limit ?? 24,
     })
 }
