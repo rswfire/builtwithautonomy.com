@@ -31,6 +31,7 @@ import {
     extractLocationState
 } from '@/lib/forms/signal/defaults'
 import { REFLECTION_DESCRIPTIONS, REFLECTION_TYPES } from '@/lib/constants/reflection'
+import { PresentationFields } from './signal/PresentationFields'
 
 interface SignalFormProps {
     mode: 'create' | 'edit'
@@ -549,6 +550,13 @@ export function SignalForm({ mode, defaultValues, onSuccess, isPostgres, realms,
                             <Input type="datetime-local" {...register('stamp_created')} />
                         </FormField>
                     </div>
+                </FormSection>
+
+                <FormSection
+                    title="Presentation"
+                    description="Configure how this signal appears on public pages (optional)"
+                >
+                    <PresentationFields register={register} watch={watch} />
                 </FormSection>
 
                 <FormSection

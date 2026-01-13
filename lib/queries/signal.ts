@@ -659,3 +659,106 @@ export async function getSignalByIdAndRealmSlug(
         },
     })
 }
+
+/**
+ * Get signal by presentation slug within a realm (by realm slug)
+ */
+export async function getSignalByPresentationSlug(
+    realmSlug: string,
+    presentationSlug: string
+): Promise<Signal | null> {
+    const realm = await prisma.realm.findUnique({
+        where: { realm_slug: realmSlug },
+    })
+
+    if (!realm) {
+        return null
+    }
+
+    return await prisma.signal.findFirst({
+        where: {
+            realm_id: realm.realm_id,
+            signal_metadata: {
+                path: ['presentation', 'slug'],
+                equals: presentationSlug,
+            },
+        },
+    })
+}
+
+/**
+ * Get signals by presentation category within a realm
+ */
+export async function getSignalsByPresentationCategory(
+    realmId: string,
+    category: string,
+    options?: {
+        limit?: number
+        offset?: number
+    }
+): Promise<Signal[]> {
+    return await prisma.signal.findMany({
+        where: {
+            realm_id: realmId,
+            signal_metadata: {
+                path: ['presentation', 'category'],
+                equals: category,
+            },
+        },
+        orderBy: { stamp_created: 'desc' },
+        take: options?.limit ?? 50,
+        skip: options?.offset ?? 0,
+    })
+}
+
+/**
+ * Get all presentation categories in a realm
+ */
+export async function getPresentationCategories(
+    realmId: string
+): Promise<string[]> {
+    const signals = await prisma.signal.findMany({
+        where: {
+            realm_id: realmId,
+            signal_metadata: {
+                path: ['presentation', 'category'],
+                not: Prisma.AnyNull,
+            },
+        },
+        select: {
+            signal_metadata: true,
+        },
+    })
+
+    const categories = new Set<string>()
+    signals.forEach(signal => {
+        const metadata = signal.signal_metadata as any
+        if (metadata?.presentation?.category) {
+            categories.add(metadata.presentation.category)
+        }
+    })
+
+    return Array.from(categories).sort()
+}
+
+/**
+ * Get featured signals in a realm
+ */
+export async function getFeaturedSignals(
+    realmId: string,
+    options?: {
+        limit?: number
+    }
+): Promise<Signal[]> {
+    return await prisma.signal.findMany({
+        where: {
+            realm_id: realmId,
+            signal_metadata: {
+                path: ['presentation', 'featured'],
+                equals: true,
+            },
+        },
+        orderBy: { stamp_created: 'desc' },
+        take: options?.limit ?? 10,
+    })
+}

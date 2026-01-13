@@ -31,6 +31,17 @@ const geographyPointSchema = z.object({
 // TYPE-SPECIFIC METADATA SCHEMAS
 // ====================
 
+const presentationMetadataSchema = z.object({
+    slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens').optional(),
+    category: z.string().min(1).max(100).optional(),
+    featured: z.boolean().optional(),
+    hero_image: z.string().optional(),
+    seo_title: z.string().max(200).optional(),
+    seo_description: z.string().max(500).optional(),
+    custom_css: z.string().optional(),
+    publish_date: z.string().optional(),
+}).optional()
+
 // DOCUMENT
 const documentMetadataSchema = z.object({
     word_count: z.number().optional(),

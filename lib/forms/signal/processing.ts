@@ -1,6 +1,19 @@
 // lib/forms/signal/processing.ts
 
 export function buildSignalPayload(signalType: string, data: any) {
+    const typeData = getTypeSpecificData(signalType, data)
+    const presentationData = buildPresentationData(data)
+
+    return {
+        payload: typeData.payload,
+        metadata: {
+            ...typeData.metadata,
+            ...presentationData,
+        }
+    }
+}
+
+function getTypeSpecificData(signalType: string, data: any) {
     switch (signalType) {
         case 'DOCUMENT':
             return buildDocumentData(data)
@@ -38,6 +51,34 @@ export function buildAnalysisFields(data: any) {
         signal_subsystems: splitCommaSeparated(data.signal_subsystems),
         signal_dominant_language: splitCommaSeparated(data.signal_dominant_language),
     }
+}
+
+function buildPresentationData(data: any) {
+    const presentation: any = {}
+
+    if (data.presentation_slug?.trim()) {
+        presentation.slug = data.presentation_slug.trim()
+    }
+    if (data.presentation_category?.trim()) {
+        presentation.category = data.presentation_category.trim()
+    }
+    if (data.presentation_featured) {
+        presentation.featured = true
+    }
+    if (data.presentation_seo_title?.trim()) {
+        presentation.seo_title = data.presentation_seo_title.trim()
+    }
+    if (data.presentation_seo_description?.trim()) {
+        presentation.seo_description = data.presentation_seo_description.trim()
+    }
+    if (data.presentation_hero_image?.trim()) {
+        presentation.hero_image = data.presentation_hero_image.trim()
+    }
+    if (data.presentation_publish_date?.trim()) {
+        presentation.publish_date = data.presentation_publish_date.trim()
+    }
+
+    return Object.keys(presentation).length > 0 ? { presentation } : {}
 }
 
 function splitCommaSeparated(value: string | null | undefined): string[] | null {
@@ -195,6 +236,7 @@ export function cleanFormData(data: any) {
     Object.keys(cleaned).forEach(key => {
         if (key.startsWith('payload_') ||
             key.startsWith('metadata_') ||
+            key.startsWith('presentation_') ||
             key.startsWith('signal_entities_') ||
             key === 'signal_actions' ||
             key === 'signal_environment' ||

@@ -58,6 +58,17 @@ export type SignalMetadata = Record<string, unknown>
 
 export type SignalPayload = Record<string, unknown>
 
+export type SignalPresentation = {
+    slug?: string
+    category?: string
+    featured?: boolean
+    hero_image?: string
+    seo_title?: string
+    seo_description?: string
+    custom_css?: string
+    publish_date?: string
+}
+
 export type SignalTags = string[]
 
 // JSON Fields

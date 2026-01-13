@@ -28,6 +28,7 @@ function getEditDefaults(values: any) {
         ...flattenAnalysisFields(values),
         ...flattenPayloadFields(values),
         ...flattenMetadataFields(values),
+        ...flattenPresentationFields(values),
     }
 }
 
@@ -144,6 +145,20 @@ function flattenMetadataFields(values: any) {
         metadata_color_space: metadata.color_space || '',
         metadata_timestamp_original: metadata.timestamp_original || '',
         metadata_gps_altitude: metadata.gps_altitude || '',
+    }
+}
+
+function flattenPresentationFields(values: any) {
+    const presentation = values.signal_metadata?.presentation || {}
+
+    return {
+        presentation_slug: presentation.slug || '',
+        presentation_category: presentation.category || '',
+        presentation_featured: presentation.featured || false,
+        presentation_seo_title: presentation.seo_title || '',
+        presentation_seo_description: presentation.seo_description || '',
+        presentation_hero_image: presentation.hero_image || '',
+        presentation_publish_date: presentation.publish_date || '',
     }
 }
 
