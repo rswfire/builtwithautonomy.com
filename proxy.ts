@@ -12,16 +12,12 @@ export async function proxy(request: NextRequest) {
 
     // Handle CORS for API routes
     if (path.startsWith('/api/')) {
-        const origin = request.headers.get('origin')
         const response = NextResponse.next()
 
-        // Allow any origin (echo it back)
-        if (origin) {
-            response.headers.set('Access-Control-Allow-Origin', origin)
-            response.headers.set('Access-Control-Allow-Credentials', 'true')
-            response.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie')
-        }
+        // Always set CORS headers for all origins
+        response.headers.set('Access-Control-Allow-Origin', '*')
+        response.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie')
 
         // Handle preflight requests
         if (request.method === 'OPTIONS') {
